@@ -31,6 +31,7 @@ CS_INFO = {
     "whatsapp_url": "https://wa.me/6281536175933?text=Halo%20CS%20ReconAuto.ID%2C%20saya%20butuh%20bantuan%20seputar%20rekonsiliasi",
     "email": "support@reconauto.id",
     "hours": "Senin - Jumat, 08:00 - 17:00 WIB",
+    "operating_hours": "Senin - Jumat, 08:00 - 17:00 WIB",
     "name": "Customer Support ReconAuto.ID"
 }
 

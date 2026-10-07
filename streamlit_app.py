@@ -102,10 +102,10 @@ with st.sidebar:
     st.divider()
     
     st.markdown("#### 📞 Kontak Customer Service")
-    st.markdown(f"**WhatsApp Resmi:** `{CS_INFO['whatsapp_display']}`")
-    st.markdown(f"**Email Finance:** `{CS_INFO['email']}`")
-    st.markdown(f"**Jam Operasional:** {CS_INFO['operating_hours']}")
-    st.link_button("Chat WhatsApp CS Sekarang", CS_INFO['whatsapp_url'], use_container_width=True)
+    st.markdown(f"**WhatsApp Resmi:** `{CS_INFO.get('whatsapp_display', '+62 815-3617-5933')}`")
+    st.markdown(f"**Email Finance:** `{CS_INFO.get('email', 'support@reconauto.id')}`")
+    st.markdown(f"**Jam Operasional:** {CS_INFO.get('operating_hours', CS_INFO.get('hours', 'Senin - Jumat, 08:00 - 17:00 WIB'))}")
+    st.link_button("Chat WhatsApp CS Sekarang", CS_INFO.get('whatsapp_url', 'https://wa.me/6281536175933'), use_container_width=True)
     
     st.divider()
     
@@ -359,5 +359,5 @@ if "reconcile_result" in st.session_state:
             st.markdown(f"""
             - **ID Sesi Rekonsiliasi:** `{res.get('run_id', 'RUN-AUTO')}`
             - **Status Database SQLite:** Tersimpan Permanen di `rekonsile.db`
-            - **Kontak CS:** `{CS_INFO['whatsapp_display']}`
+            - **Kontak CS:** `{CS_INFO.get('whatsapp_display', '+62 815-3617-5933')}`
             """)

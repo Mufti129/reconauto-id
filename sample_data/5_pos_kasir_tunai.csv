@@ -1,0 +1,8 @@
+Tanggal,No Transaksi,Kasir,Shift,Total Belanja,Metode Bayar,Setor Bank Ref,Status Setoran,Catatan
+2026-08-02,POS-260802-01,Siti,Pagi,1200000,TUNAI,SETOR-CDM-0802,Sudah Disetor,Lengkap
+2026-08-02,POS-260802-02,Budi,Siang,1300000,TUNAI,SETOR-CDM-0802,Sudah Disetor,Lengkap
+2026-08-06,POS-260806-03,Siti,Pagi,1700000,TUNAI,SETOR-CDM-0807,Sudah Disetor,Shift pagi
+2026-08-06,POS-260806-04,Budi,Siang,1500000,TUNAI,SETOR-CDM-0807,Sudah Disetor,Selisih fisik kasir Rp 200.000
+2026-08-12,POS-260812-05,Rina,Pagi,950000,TUNAI,SETOR-TELLER-0812,Sudah Disetor,Setor via Teller
+2026-08-12,POS-260812-06,Rina,Siang,1000000,TUNAI,SETOR-TELLER-0812,Sudah Disetor,Setor via Teller
+2026-08-15,POS-260815-07,Siti,Pagi,1100000,TUNAI,BELUM_SETOR,Dalam Brankas,Kas toko weekend

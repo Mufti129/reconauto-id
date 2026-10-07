@@ -1,0 +1,29 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# Environment files
+.env
+
+# Testing & Logs
+.pytest_cache/
+*.log
+
+# Large ZIP archives & Extracted Exploratory Repos
+*.zip
+OneLab_Ventures-Assessment-main/
+bank-reconcile-main/
+bank-to-gl-reconciliation-main/
+tiktok-shop-settlement-master/
+archive (5)/
+
+# Operating System
+.DS_Store
+Thumbs.db
+

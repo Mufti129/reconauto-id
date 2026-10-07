@@ -1,0 +1,138 @@
+#reconauto-chat-bubble {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #1F3864;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  font-size: 26px;
+  user-select: none;
+}
+
+#reconauto-chat-panel {
+  position: fixed;
+  bottom: 92px;
+  right: 24px;
+  z-index: 9999;
+  width: 340px;
+  max-height: 480px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+#reconauto-chat-panel.open {
+  display: flex;
+}
+
+#reconauto-chat-header {
+  background: #1F3864;
+  color: #fff;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+#reconauto-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  font-size: 13px;
+  background: #F7F8FA;
+}
+
+.rc-msg {
+  margin-bottom: 10px;
+  max-width: 85%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.rc-msg.user {
+  background: #1F3864;
+  color: #fff;
+  margin-left: auto;
+  border-bottom-right-radius: 2px;
+}
+
+.rc-msg.bot {
+  background: #E9ECF3;
+  color: #1a1a1a;
+  margin-right: auto;
+  border-bottom-left-radius: 2px;
+}
+
+#reconauto-chat-escalate {
+  display: none;
+  margin: 8px 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #FFF3E0;
+  border: 1px solid #FFB74D;
+  font-size: 12px;
+  color: #5a3d00;
+}
+
+#reconauto-chat-escalate a {
+  color: #C00000;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+#reconauto-chat-input-row {
+  display: flex;
+  border-top: 1px solid #eee;
+}
+
+#reconauto-chat-input {
+  flex: 1;
+  border: none;
+  padding: 10px 12px;
+  font-size: 13px;
+  outline: none;
+}
+
+#reconauto-chat-send {
+  border: none;
+  background: #1F3864;
+  color: #fff;
+  padding: 0 16px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+#reconauto-chat-send:hover {
+  background: #16294a;
+}
+
+/* Responsif untuk layar ponsel */
+@media (max-width: 480px) {
+  #reconauto-chat-panel {
+    width: calc(100vw - 32px);
+    right: 16px;
+    bottom: 84px;
+    max-height: 70vh;
+  }
+  #reconauto-chat-bubble {
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+    bottom: 16px;
+    right: 16px;
+  }
+}

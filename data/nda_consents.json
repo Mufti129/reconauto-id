@@ -1,0 +1,30 @@
+[
+  {
+    "consent_id": "6c593530-5df8-4918-ae97-78cf65e38043",
+    "nama_lengkap": "Direktur Keuangan",
+    "email": "cfo@perusahaan.co.id",
+    "nama_perusahaan": "PT Solusi Sukses",
+    "jabatan": "Chief Financial Officer",
+    "document_version": "1.0.0",
+    "document_hash": "e4b841f3ad0725cf67339267d418bec57a4c5cdc5797f92d74b251d3d07353f5",
+    "signature_data": null,
+    "timestamp_utc": "2026-09-23T04:14:24.574615+00:00",
+    "timestamp_wib": "2026-09-23T11:14:24.574615+07:00",
+    "ip_address": "127.0.0.1",
+    "user_agent": "curl/8.7.1"
+  },
+  {
+    "consent_id": "c4604a5b-5ff2-491f-8d50-8b4b3b4cf87b",
+    "nama_lengkap": "mufti mufti",
+    "email": "ukhtytrader01@gmail.com",
+    "nama_perusahaan": "pgi",
+    "jabatan": null,
+    "document_version": "1.0.0",
+    "document_hash": "e4b841f3ad0725cf67339267d418bec57a4c5cdc5797f92d74b251d3d07353f5",
+    "signature_data": null,
+    "timestamp_utc": "2026-09-23T04:17:08.123422+00:00",
+    "timestamp_wib": "2026-09-23T11:17:08.123422+07:00",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36"
+  }
+]

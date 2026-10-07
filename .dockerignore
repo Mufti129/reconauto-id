@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+.env
+.pytest_cache/
+*.log
+*.zip
+OneLab_Ventures-Assessment-main/
+bank-reconcile-main/
+bank-to-gl-reconciliation-main/
+tiktok-shop-settlement-master/
+archive (5)/
+.git/
+.DS_Store

@@ -1,0 +1,415 @@
+/* ================================================================
+   Widget NDA Digital — ReconAuto.ID
+   Desain Proporsional, Modern, dan Enterprise-Grade
+   ================================================================ */
+
+/* --- Overlay Gelap Blur --- */
+#nda-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  opacity: 0;
+  transition: opacity 0.25s ease-out;
+}
+#nda-overlay.visible { opacity: 1; }
+#nda-overlay.hidden  { display: none; }
+
+/* --- Panel Modal Proporsional --- */
+#nda-modal {
+  background: #ffffff;
+  width: 840px;
+  max-width: 95vw;
+  height: 88vh;
+  max-height: 720px;
+  border-radius: 16px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateY(16px) scale(0.98);
+  transition: transform 0.25s ease-out;
+}
+#nda-overlay.visible #nda-modal {
+  transform: translateY(0) scale(1);
+}
+
+/* --- Header Modal --- */
+#nda-header {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #1e3a8a 100%);
+  color: #fff;
+  padding: 14px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.nda-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.nda-header-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+#nda-header h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: #f8fafc;
+}
+#nda-header p {
+  margin: 1px 0 0 0;
+  font-size: 11px;
+  color: #94a3b8;
+}
+.nda-header-badge {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+/* --- Body Modal (Scrollable Section) --- */
+#nda-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 16px 22px;
+  gap: 14px;
+  background: #f8fafc;
+}
+
+/* --- Teks Perjanjian (Scrollable Window) --- */
+.nda-text-wrapper {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.nda-text-toolbar {
+  background: #f1f5f9;
+  padding: 7px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e2e8f0;
+}
+#nda-text-area {
+  height: 180px;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 16px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: #1e293b;
+  white-space: pre-wrap;
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  background: #ffffff;
+}
+#nda-text-area::-webkit-scrollbar { width: 6px; }
+#nda-text-area::-webkit-scrollbar-track { background: #f1f5f9; }
+#nda-text-area::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+#nda-text-area::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+#nda-scroll-hint {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #d97706;
+  background: #fef3c7;
+  padding: 2px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+#nda-scroll-hint.done {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+/* --- Grid 2 Kolom: Identitas & Tanda Tangan Digital --- */
+.nda-grid-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* Kolom Kiri: Form Identitas */
+.nda-card-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+.nda-card-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.nda-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.nda-form-grid .nda-full {
+  grid-column: span 2;
+}
+.nda-field {
+  display: flex;
+  flex-direction: column;
+}
+.nda-field label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.nda-field input {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11.5px;
+  outline: none;
+  background: #fff;
+  transition: all 0.15s;
+}
+.nda-field input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* Kolom Kanan: Canvas Tanda Tangan */
+.nda-sig-container {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.nda-sig-box {
+  position: relative;
+  width: 100%;
+  height: 105px;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  cursor: crosshair;
+  overflow: hidden;
+  touch-action: none;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+.nda-sig-box.active {
+  border-color: #2563eb;
+  border-style: solid;
+  background: #f8fafc;
+}
+.nda-sig-box.has-signature {
+  border-color: #10b981;
+  border-style: solid;
+}
+#nda-sig-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+.nda-sig-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+.nda-sig-placeholder span {
+  font-size: 9.5px;
+  color: #cbd5e1;
+  margin-top: 1px;
+}
+.nda-sig-baseline {
+  position: absolute;
+  bottom: 22px;
+  left: 15%;
+  right: 15%;
+  border-bottom: 1px dashed #e2e8f0;
+  pointer-events: none;
+}
+.nda-sig-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 5px;
+}
+.nda-sig-status {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.nda-sig-status.signed {
+  color: #059669;
+}
+.nda-sig-clear-btn {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 5px;
+  padding: 2px 7px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.nda-sig-clear-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+/* --- Error Banner --- */
+#nda-error {
+  display: none;
+  padding: 7px 12px;
+  border-radius: 6px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  font-size: 11.5px;
+  color: #991b1b;
+  font-weight: 500;
+}
+
+/* --- Footer Modal (Fixed) --- */
+#nda-footer {
+  padding: 12px 22px 16px;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#nda-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+#nda-checkbox-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  accent-color: #2563eb;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+#nda-checkbox-row label {
+  font-size: 11px;
+  color: #334155;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.nda-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.nda-legal-note {
+  font-size: 10.5px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+#nda-submit-btn {
+  padding: 9px 20px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+#nda-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+  box-shadow: 0 5px 14px rgba(37, 99, 235, 0.35);
+  transform: translateY(-1px);
+}
+#nda-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  background: #94a3b8;
+}
+
+/* Responsif Mobile & Tablet */
+@media (max-width: 768px) {
+  #nda-modal {
+    width: 100%;
+    height: 100%;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+  .nda-grid-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  #nda-text-area {
+    height: 130px;
+  }
+  .nda-footer-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  #nda-submit-btn {
+    width: 100%;
+  }
+}

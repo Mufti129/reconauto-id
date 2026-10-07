@@ -1,0 +1,105 @@
+<!-- ==================================================================
+  Widget NDA Digital — ReconAuto.ID (Proportional & Secure)
+  Tempelkan seluruh blok ini tepat sebelum tag </body> pada templates/index.html.
+=================================================================== -->
+
+<link rel="stylesheet" href="/static/nda_widget.css">
+
+<div id="nda-overlay" class="hidden">
+  <div id="nda-modal">
+    <!-- Header with Icon & Legal Badges -->
+    <div id="nda-header">
+      <div class="nda-header-left">
+        <img src="/static/icons/recon_icon_nda.jpg" alt="NDA" class="nda-header-icon">
+        <div>
+          <h2>Perjanjian Kerahasiaan Data (NDA)</h2>
+          <p>Perlindungan Data Rekonsiliasi Keuangan • Berdasarkan UU PDP No. 27/2022 & UU ITE</p>
+        </div>
+      </div>
+      <div class="nda-header-badge">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        <span>Terenkripsi & Sah Hukum</span>
+      </div>
+    </div>
+
+    <!-- Scrollable Body with 2-Column Split -->
+    <div id="nda-body">
+      <div class="nda-text-wrapper">
+        <div class="nda-text-toolbar">
+          <span>DOKUMEN KONTRAK HUKUM (9 PASAL)</span>
+          <span id="nda-scroll-hint">↓ Gulir ke bawah untuk membaca seluruh pasal (Wajib)</span>
+        </div>
+        <div id="nda-text-area">Memuat dokumen perjanjian...</div>
+      </div>
+
+      <div id="nda-error"></div>
+
+      <div class="nda-grid-row">
+        <!-- Kolom Kiri: Identitas -->
+        <div class="nda-card-section">
+          <div class="nda-card-title">
+            <svg style="width:16px;height:16px;color:#2563eb;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            <span>Identitas Penandatangan (Pihak Kedua)</span>
+          </div>
+          <div class="nda-form-grid">
+            <div class="nda-field nda-full">
+              <label for="nda-nama">Nama Lengkap *</label>
+              <input type="text" id="nda-nama" placeholder="Nama sesuai KTP / Dokumen Resmi" required>
+            </div>
+            <div class="nda-field nda-full">
+              <label for="nda-email">Alamat Email *</label>
+              <input type="email" id="nda-email" placeholder="nama@perusahaan.co.id" required>
+            </div>
+            <div class="nda-field">
+              <label for="nda-perusahaan">Perusahaan / Toko</label>
+              <input type="text" id="nda-perusahaan" placeholder="Opsional">
+            </div>
+            <div class="nda-field">
+              <label for="nda-jabatan">Jabatan</label>
+              <input type="text" id="nda-jabatan" placeholder="Opsional">
+            </div>
+          </div>
+        </div>
+
+        <!-- Kolom Kanan: Tanda Tangan Digital Pad -->
+        <div class="nda-card-section nda-sig-container">
+          <div class="nda-card-title">
+            <svg style="width:16px;height:16px;color:#4f46e5;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            <span>Tanda Tangan Elektronik</span>
+          </div>
+          <div class="nda-sig-box" id="nda-sig-box">
+            <div class="nda-sig-placeholder" id="nda-sig-placeholder">
+              Goreskan Tanda Tangan Anda di Sini
+              <span>(Gunakan Mouse, Touchscreen, atau Stylus)</span>
+            </div>
+            <div class="nda-sig-baseline"></div>
+            <canvas id="nda-sig-canvas"></canvas>
+          </div>
+          <div class="nda-sig-actions">
+            <span class="nda-sig-status" id="nda-sig-status">Goreskan tanda tangan di atas</span>
+            <button type="button" class="nda-sig-clear-btn" id="nda-clear-sig">Bersihkan / Ulangi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Fixed -->
+    <div id="nda-footer">
+      <div id="nda-checkbox-row">
+        <input type="checkbox" id="nda-checkbox">
+        <label for="nda-checkbox">
+          Saya telah membaca, memahami, dan menyetujui seluruh ketentuan Perjanjian Kerahasiaan Data (NDA) di atas. Saya menyatakan berwenang mewakili diri sendiri atau badan usaha yang bersangkutan untuk mengikatkan diri secara sah.
+        </label>
+      </div>
+      <div class="nda-footer-actions">
+        <div class="nda-legal-note">
+          <svg style="width:14px;height:14px;color:#059669;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          <span>Data Anda dilindungi enkripsi AES-256 & disimpan di database aman.</span>
+        </div>
+        <button id="nda-submit-btn" disabled>Setuju & Buka Akses Rekonsiliasi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/nda_widget.js"></script>

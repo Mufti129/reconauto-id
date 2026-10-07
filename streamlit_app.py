@@ -38,57 +38,162 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Styling Tema Terang Modern (Clean SaaS Enterprise)
+# Styling Tema Terang Modern Berkontras Tinggi (Clean SaaS Enterprise)
 st.markdown("""
 <style>
+    /* 1. Global Reset & High Contrast Typography */
     .stApp {
-        background-color: #f8fafc;
-        color: #0f172a;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: #f8fafc !important;
+        color: #0f172a !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
-    .metric-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 16px 20px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+
+    /* Paksa seluruh teks judul, paragraf, label dan markdown berwarna gelap kontras tinggi */
+    h1, h2, h3, h4, h5, h6,
+    .stMarkdown,
+    [data-testid="stMarkdownContainer"],
+    [data-testid="stMarkdownContainer"] p,
+    [data-testid="stMarkdownContainer"] span,
+    [data-testid="stMarkdownContainer"] li,
+    [data-testid="stWidgetLabel"] p,
+    [data-testid="stWidgetLabel"] label,
+    label {
+        color: #0f172a !important;
     }
+
+    /* Subtitle & Keterangan Tambahan */
+    .stCaption, [data-testid="stCaptionContainer"] p {
+        color: #475569 !important;
+    }
+
+    /* 2. Sidebar Bersih & Kontras Tinggi */
+    [data-testid="stSidebar"] {
+        background-color: #ffffff !important;
+        border-right: 1px solid #e2e8f0 !important;
+    }
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] h4,
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] label {
+        color: #0f172a !important;
+    }
+
+    /* 3. Kartu Metrik KPI Eksekutif */
+    [data-testid="stMetric"] {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        padding: 14px 18px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+    }
+    [data-testid="stMetricLabel"] p {
+        color: #64748b !important;
+        font-weight: 600 !important;
+        font-size: 13px !important;
+    }
+    [data-testid="stMetricValue"] div {
+        color: #0f172a !important;
+        font-weight: 800 !important;
+        font-size: 22px !important;
+    }
+
+    /* 4. Form Input, Text Area, Selectbox & Uploader */
+    input, textarea, [data-baseweb="select"] div, [data-baseweb="input"] input {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        border-color: #cbd5e1 !important;
+        -webkit-text-fill-color: #0f172a !important;
+    }
+    [data-testid="stFileUploader"] {
+        background-color: #ffffff !important;
+        border: 1px dashed #cbd5e1 !important;
+        border-radius: 12px !important;
+        padding: 12px !important;
+    }
+    [data-testid="stFileUploader"] section {
+        background-color: #f8fafc !important;
+    }
+    [data-testid="stFileUploader"] small,
+    [data-testid="stFileUploader"] span {
+        color: #475569 !important;
+    }
+
+    /* 5. Radio Button & Tabs */
+    [data-testid="stRadio"] label span {
+        color: #0f172a !important;
+        font-weight: 500 !important;
+    }
+    button[data-baseweb="tab"] {
+        color: #475569 !important;
+        font-weight: 600 !important;
+    }
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: #2563eb !important;
+        border-bottom-color: #2563eb !important;
+    }
+
+    /* 6. Kotak Info & Peringatan */
+    .stAlert {
+        border-radius: 10px !important;
+    }
+    [data-testid="stAlert"] p {
+        color: #0f172a !important;
+    }
+
+    /* 7. Badges Khusus Bukti Kas */
     .proof-badge-success {
-        background: #ecfdf5;
-        border: 1px solid #a7f3d0;
-        color: #065f46;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-weight: 700;
-        font-size: 13px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
+        background: #ecfdf5 !important;
+        border: 1px solid #a7f3d0 !important;
+        color: #065f46 !important;
+        padding: 8px 16px !important;
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        font-size: 13px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
     }
     .proof-badge-anomalies {
-        background: #fff1f2;
-        border: 1px solid #fecdd3;
-        color: #9f1239;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-weight: 700;
-        font-size: 13px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
+        background: #fff1f2 !important;
+        border: 1px solid #fecdd3 !important;
+        color: #9f1239 !important;
+        padding: 8px 16px !important;
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        font-size: 13px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
     }
+
+    /* 8. Tombol Modern Solid */
     .stButton>button {
-        background: #2563eb;
-        color: #ffffff;
-        border-radius: 10px;
-        font-weight: 600;
-        border: none;
-        padding: 8px 18px;
-        box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+        background: #2563eb !important;
+        color: #ffffff !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        border: none !important;
+        padding: 8px 18px !important;
+        box-shadow: 0 2px 8px rgba(37,99,235,0.25) !important;
+        transition: all 0.15s ease !important;
     }
     .stButton>button:hover {
-        background: #1d4ed8;
-        color: #ffffff;
+        background: #1d4ed8 !important;
+        color: #ffffff !important;
+    }
+    .stDownloadButton>button {
+        background: #ffffff !important;
+        color: #2563eb !important;
+        border: 1px solid #2563eb !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+    }
+    .stDownloadButton>button:hover {
+        background: #eff6ff !important;
+        color: #1d4ed8 !important;
     }
 </style>
 """, unsafe_allow_html=True)

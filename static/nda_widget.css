@@ -43,14 +43,14 @@
 
 /* --- Header Modal --- */
 #nda-header {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #1e3a8a 100%);
-  color: #fff;
-  padding: 14px 22px;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 16px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #e2e8f0;
 }
 .nda-header-left {
   display: flex;
@@ -62,25 +62,25 @@
   height: 32px;
   border-radius: 8px;
   object-fit: cover;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
 }
 #nda-header h2 {
   margin: 0;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.2px;
-  color: #f8fafc;
+  color: #0f172a;
 }
 #nda-header p {
   margin: 1px 0 0 0;
   font-size: 11px;
-  color: #94a3b8;
+  color: #64748b;
 }
 .nda-header-badge {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #34d399;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #059669;
   font-size: 11px;
   font-weight: 600;
   padding: 4px 10px;

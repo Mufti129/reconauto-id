@@ -1,24 +1,14 @@
 """
 app.py
 ------
-Entrypoint resmi untuk Hugging Face Spaces (SDK: Gradio).
-Memadukan backend & frontend FastAPI ReconAuto.ID langsung ke dalam runtime Gradio.
+Entrypoint adaptif untuk Streamlit Cloud & runtime web.
+Mendukung eksekusi langsung lewat `streamlit run app.py` maupun `streamlit run streamlit_app.py`.
 """
 
-import gradio as gr
-from main import app as fastapi_app
+import sys
 
-# Inisialisasi antarmuka Gradio
-with gr.Blocks(title="ReconAuto.ID - Platform Rekonsiliasi Keuangan Dua Arah Otomatis") as demo:
-    gr.HTML("""
-        <div style="text-align: center; padding: 20px;">
-            <p>Memuat Dashboard ReconAuto.ID...</p>
-        </div>
-    """)
-
-# Daftarkan seluruh rute ReconAuto.ID (Dashboard, API, Static Files) ke demo.app
-for route in fastapi_app.router.routes:
-    demo.app.router.routes.insert(0, route)
+# Eksekusi langsung dashboard Streamlit ReconAuto.ID
+import streamlit_app
 
 if __name__ == "__main__":
-    demo.launch(ssr_mode=False)
+    pass

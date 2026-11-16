@@ -305,6 +305,13 @@
       localStorage.setItem(LS_KEY, consentId);
       localStorage.setItem(LS_EMAIL_KEY, email);
 
+      const escapeHtml = (str) => String(str || '').replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+      const safeNama = escapeHtml(nama);
+      const safeCompany = escapeHtml(companyInput.value.trim() || 'Perusahaan Klien');
+      const safeConsentId = escapeHtml(consentId.slice(0, 13));
+
       // Tampilkan state sukses dan tombol unduh dokumen resmi bersama
       const modalContent = document.getElementById("nda-modal");
       if (modalContent) {
@@ -322,15 +329,15 @@
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; text-align: left; font-size: 11.5px; color: #334155;">
               <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                 <span style="color: #64748b;">Penandatangan:</span>
-                <span style="font-weight: 700; color: #0f172a;">${nama}</span>
+                <span style="font-weight: 700; color: #0f172a;">${safeNama}</span>
               </div>
               <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                 <span style="color: #64748b;">Instansi / Perusahaan:</span>
-                <span style="font-weight: 600; color: #0f172a;">${companyInput.value.trim() || 'Perusahaan Klien'}</span>
+                <span style="font-weight: 600; color: #0f172a;">${safeCompany}</span>
               </div>
               <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                 <span style="color: #64748b;">ID Registrasi Dokumen:</span>
-                <span style="font-family: monospace; font-weight: 600; color: #2563eb;">${consentId.slice(0, 13)}...</span>
+                <span style="font-family: monospace; font-weight: 600; color: #2563eb;">${safeConsentId}...</span>
               </div>
               <div style="display: flex; justify-content: space-between;">
                 <span style="color: #64748b;">Status Sertifikasi:</span>

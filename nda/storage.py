@@ -21,8 +21,8 @@ _STORAGE_FILE = _STORAGE_DIR / "nda_consents.json"
 
 
 def _ensure_sqlite_table() -> sqlite3.Connection:
-    conn = sqlite3.connect(str(_DB_PATH))
-    conn.row_factory = sqlite3.Row
+    from core.db import get_connection
+    conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS nda_consents (

@@ -26,12 +26,13 @@ DEFAULT_COA = {
     "cash_shortage": "6-9001",
     "bank_interest": "8-1001",
     "bank_fee": "6-3001",
-    "tax_interest": "6-3002"
+    "tax_interest": "6-3002",
+    "unidentified_deposit": "2-9001"
 }
 
 def map_account_number(account_name: str, coa_mapping: Dict[str, str]) -> str:
     """Memetakan nama akun deskriptif ke nomor bagan akun (COA) entitas."""
-    name_upper = account_name.upper()
+    name_upper = (account_name or "").upper()
     coa = {**DEFAULT_COA, **(coa_mapping or {})}
 
     if "BANK" in name_upper or "BCA" in name_upper or "MANDIRI" in name_upper:
@@ -42,7 +43,7 @@ def map_account_number(account_name: str, coa_mapping: Dict[str, str]) -> str:
         return coa.get("shopee_clearing", "1-1021")
     elif "DOKU" in name_upper or "PG" in name_upper:
         return coa.get("doku_clearing", "1-1022")
-    elif "KASIR" in name_upper or "POS" in name_upper or "KAS" in name_upper:
+    elif "KASIR" in name_upper or "POS" in name_upper or "KAS TUNAI" in name_upper:
         return coa.get("cash_pos", "1-1010")
     elif "BEBAN KOMISI" in name_upper or "FEE" in name_upper:
         return coa.get("platform_fee", "6-2001")
@@ -54,6 +55,8 @@ def map_account_number(account_name: str, coa_mapping: Dict[str, str]) -> str:
         return coa.get("tax_interest", "6-3002")
     elif "ADMINISTRASI" in name_upper or "ADM" in name_upper:
         return coa.get("bank_fee", "6-3001")
+    elif "TITIPAN" in name_upper or "BELUM TERIDENTIFIKASI" in name_upper:
+        return coa.get("unidentified_deposit", "2-9001")
     return "1-9999"
 
 def build_accounting_payload(
@@ -73,9 +76,10 @@ def build_accounting_payload(
         ref = ref_number or f"JRN-MKR-{datetime.now().strftime('%Y%m%d%H%M')}"
         lines = []
         for j in journal_entries:
+            acc_label = j.get("account_name") or j.get("account") or ""
             lines.append({
-                "account_number": map_account_number(j.get("account", ""), coa),
-                "account_name": j.get("account", ""),
+                "account_number": map_account_number(acc_label, coa),
+                "account_name": acc_label,
                 "debit": round(float(j.get("debit", 0)), 2),
                 "credit": round(float(j.get("credit", 0)), 2),
                 "description": j.get("memo", "Penyesuaian rekonsiliasi e-commerce")
@@ -96,11 +100,13 @@ def build_accounting_payload(
 
         detail_lines = []
         for j in journal_entries:
+            acc_label = j.get("account_name") or j.get("account") or ""
             deb = round(float(j.get("debit", 0)), 2)
             crd = round(float(j.get("credit", 0)), 2)
             is_debit = deb > 0
             detail_lines.append({
-                "accountNo": map_account_number(j.get("account", ""), coa),
+                "accountNo": map_account_number(acc_label, coa),
+                "accountName": acc_label,
                 "amount": deb if is_debit else crd,
                 "post": "DEBIT" if is_debit else "CREDIT",
                 "memo": j.get("memo", "ReconAuto auto-adjustment")
@@ -116,11 +122,13 @@ def build_accounting_payload(
         ref = ref_number or f"XERO-JRN-{datetime.now().strftime('%Y%m%d%H%M')}"
         xero_lines = []
         for j in journal_entries:
+            acc_label = j.get("account_name") or j.get("account") or ""
             deb = round(float(j.get("debit", 0)), 2)
             crd = round(float(j.get("credit", 0)), 2)
             amt = deb if deb > 0 else -crd
             xero_lines.append({
-                "AccountCode": map_account_number(j.get("account", ""), coa),
+                "AccountCode": map_account_number(acc_label, coa),
+                "AccountName": acc_label,
                 "LineAmount": amt,
                 "Description": j.get("memo", "Reconcile adjustment")
             })

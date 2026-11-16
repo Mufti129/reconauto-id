@@ -157,6 +157,9 @@ async def query_gemini(
         }
     }
     
+    if not GEMINI_API_KEY or not GEMINI_API_KEY.strip():
+        return fallback_local_reply(prompt)
+
     def _call_gemini_sync() -> str:
         import urllib.request
         import ssl
@@ -205,35 +208,70 @@ def fallback_local_reply(prompt: str) -> str:
     lower = prompt.lower()
     if check_is_cs_requested(prompt):
         return (
-            "Tentu! Anda dapat langsung terhubung dengan tim **Customer Service ReconAuto.ID**.\n\n"
-            f"**WhatsApp CS**: [{CS_INFO['whatsapp_display']}]({CS_INFO['whatsapp_url']})\n"
-            f"✉️ **Email**: {CS_INFO['email']}\n"
-            f"⏰ **Jam Operasional**: {CS_INFO['hours']}\n\n"
-            "Silakan klik tombol WhatsApp yang tersedia untuk memulai percakapan langsung dengan tim kami!"
+            "Tentu! Anda dapat langsung terhubung dengan tim **Customer Service ReconAuto.ID**:\n\n"
+            f"• **WhatsApp CS**: [{CS_INFO['whatsapp_display']}]({CS_INFO['whatsapp_url']})\n"
+            f"• **Email Resmi**: {CS_INFO['email']}\n"
+            f"• **Jam Operasional**: {CS_INFO['hours']}\n\n"
+            "Silakan klik tombol WhatsApp yang tersedia untuk memulai percakapan langsung dengan tim kami."
         )
-    if "proof of cash" in lower or "keseimbangan" in lower or "selisih" in lower:
+    if "proof of cash" in lower or "keseimbangan" in lower or "selisih" in lower or "tied" in lower:
         return (
             "**Proof of Cash (Pembuktian Kas)** adalah formula audit matematis yang memvalidasi bahwa seluruh aliran kas di rekening koran bank terhitung 100% tanpa ada dana gelap tak bertuan (**Formula Kas Tied Rp 0.00**).\n\n"
             "**Mengapa di hasil demo tetap ada selisih operasional?**\n"
-            "Status *'Tied Rp 0.00'* menandakan formula pembukuan tertutup sempurna. Di saat bersamaan, sistem secara presisi mengisolasi seluruh selisih riil operasional (seperti *Missing Payout* Rp 7.277.900, *Kasir Shortage* Rp 200.000, dan *Unidentified Deposit* Rp 500.000) agar dapat segera Anda klaim dan tindak lanjuti melalui tabel temuan & generator surat sengketa resmi."
+            "Status *'Tied Rp 0.00'* menandakan formula pembukuan tertutup sempurna:\n"
+            "• Total Kredit Mutasi Bank = (Penjualan Bersih) - (In-Transit) - (Missing Payout) - (Kas Toko) - (Shortage) + (Pelunasan In-Transit Lalu) + (Unidentified Deposit) + (Bunga Bank) + (External COD Cleared)\n\n"
+            "Di saat bersamaan, sistem secara presisi mengisolasi seluruh selisih riil operasional (seperti *Missing Payout* Rp 7.277.900, *Kasir Shortage* Rp 200.000, dan *Unidentified Deposit* Rp 500.000) agar dapat segera Anda klaim dan tindak lanjuti melalui tabel temuan & generator surat sengketa resmi."
         )
-    if "cod" in lower or "kurir" in lower or "jne" in lower or "sicepat" in lower:
+    if "cod" in lower or "kurir" in lower or "jne" in lower or "sicepat" in lower or "ekspedisi" in lower:
         return (
             "**Rekonsiliasi 3-Arah COD** mencocokkan data antara **Order Penjualan**, **Manifest Resi Kurir (AWB)**, "
             "dan **Mutasi Kredit Bank**.\n\n"
             "Sistem otomatis mendeteksi kebocoran kas:\n"
-            "- **COD_UNREMITTED**: Paket terkirim tapi dana belum disetor kurir ke rekening bank.\n"
-            "- **COD_SHORTAGE**: Setoran kurir lebih kecil daripada nilai tagihan COD (kurang setor)."
+            "• **COD_UNREMITTED**: Paket terkirim tapi dana belum disetor kurir ke rekening bank.\n"
+            "• **COD_SHORTAGE**: Setoran kurir lebih kecil daripada nilai tagihan COD bersih yang seharusnya diterima.\n"
+            "• **COD_VALUE_MISMATCH**: Nilai tagihan COD kurir berbeda dari nilai invoice pesanan."
         )
-    if "demo" in lower:
+    if "klaim" in lower or "dispute" in lower or "missing" in lower or "overcharge" in lower:
         return (
-            "Anda dapat langsung mencoba fitur rekonsiliasi tanpa perlu menyiapkan data sendiri! "
-            "Klik tombol **'Demo 1-Klik Multi-Sumber'** di bagian atas navbar untuk memuat otomatis 8 berkas contoh."
+            "**Auto-Dispute Claim Generator** memudahkan Anda menagih dana yang belum cair (*Missing Payout*) atau potongan komisi berlebih (*Fee Overcharge*).\n\n"
+            "• Menghasilkan **Draf Email Resmi** siap salin (*copy-paste*) lengkap dengan daftar Order ID, nominal klaim, dan rekening bank operasional terdaftar.\n"
+            "• Menghasilkan **Surat Klaim PDF Resmi** ber-kop perusahaan dan kolom tanda tangan siap kirim ke Tim Finance Marketplace / Ekspedisi."
+        )
+    if "jurnal" in lower or "mekari" in lower or "accurate" in lower or "xero" in lower or "akuntansi" in lower or "coa" in lower:
+        return (
+            "**Integrasi Jurnal GL & Sinkronisasi ERP** di ReconAuto.ID bekerja secara otomatis:\n\n"
+            "• Menyusun ayat jurnal penyesuaian otomatis berstandar PSAK (Bunga Bank, Beban Adm, Pajak Giro, Selisih Kasir, dan Titipan Dana Tak Dikenal).\n"
+            "• Mendukung ekspor **CSV Jurnal** maupun transmisi API langsung ke **Mekari Jurnal**, **Accurate Online**, dan **Xero Accounting** lengkap dengan validasi keseimbangan Debet = Kredit."
+        )
+    if "bank" in lower or "marketplace" in lower or "sumber" in lower or "katalog" in lower or "format" in lower:
+        return (
+            "**ReconAuto.ID mendukung 39+ Sumber Data Finansial** dalam 5 kategori:\n\n"
+            "1. **Mutasi Bank**: BCA (CSV & PDF), Mandiri (MCM/Kopra), BNI, BRI, BSI, CIMB Niaga, Permata, dan SWIFT MT940.\n"
+            "2. **Marketplace**: TikTok Shop, Shopee, Tokopedia, Lazada, Blibli.\n"
+            "3. **Payment Gateway & QRIS**: DOKU, Midtrans, Xendit, Faspay, Duitku, QRIS Nasional.\n"
+            "4. **Kasir POS & Ritel**: Kasir Tunai Toko, Jubelio POS, Moka POS, Pawoon.\n"
+            "5. **Ekspedisi COD**: JNE Express, SiCepat Express, J&T Express."
+        )
+    if "nda" in lower or "keamanan" in lower or "privasi" in lower:
+        return (
+            "**Keamanan Data & NDA Digital**:\n\n"
+            "• Dilindungi oleh Perjanjian Kerahasiaan Data (NDA) Digital bilateral sesuai **UU PDP No. 27/2022** & **UU ITE No. 1/2024**.\n"
+            "• Dilengkapi tanda tangan elektronik canvas, hash integritas SHA-256, serta fitur unduh salinan PDF resmi."
+        )
+    if "demo" in lower or "cara" in lower or "mulai" in lower or "sampel" in lower:
+        return (
+            "**Cara Menggunakan ReconAuto.ID**:\n\n"
+            "1. **Mode Simulasi Instan**: Klik tombol **'Demo 1-Klik Multi-Sumber'** untuk langsung menguji 8 berkas dataset multi-kanal bawaan.\n"
+            "2. **Unduh Berkas Sampel**: Klik tombol **'Unduh Sampel Data Demo (ZIP)'** jika Anda ingin melihat contoh struktur file CSV & PDF yang digunakan.\n"
+            "3. **Upload Mandiri**: Unggah banyak file sekaligus pada 5 kotak kategori sumber data, lalu klik **'Proses & Rekonsiliasikan Berkas'**."
         )
     return (
-        "Halo! Saya **ReconBot**, asisten AI ReconAuto.ID. Saya siap membantu Anda mengenai fitur rekonsiliasi multi-bank, "
-        "marketplace, payment gateway, audit COD 3-arah, maupun pertanyaan lainnya. "
-        "Jika butuh bantuan langsung dari staf kami, Anda juga dapat meminta untuk diarahkan ke **Customer Service** kapan saja."
+        "Halo! Saya **ReconBot**, asisten AI resmi **ReconAuto.ID**. Saya siap membantu Anda mengenai:\n\n"
+        "• **Proof of Cash** (Formula pembuktian kas seimbang Tied Rp 0.00 & isolasi 34 anomali)\n"
+        "• **Audit 3-Arah COD** (JNE, SiCepat, J&T)\n"
+        "• **Auto-Dispute Claim Generator** (Surat PDF & draf email klaim)\n"
+        "• **Sinkronisasi Jurnal ERP** (Mekari Jurnal, Accurate Online, Xero)\n\n"
+        f"Jika membutuhkan bantuan langsung dari tim kami, silakan hubungi **WhatsApp CS di {CS_INFO['whatsapp_display']}**."
     )
 
 def clean_chatbot_reply(text: str) -> str:
@@ -314,4 +352,25 @@ async def generate_chat_response(
         "cs_info": CS_INFO,
         "quick_actions": quick_actions
     }
+
+
+def generate_chat_response_sync(
+    message: str,
+    history: Optional[List[Dict[str, str]]] = None,
+    active_context: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """Wrapper sinkron untuk pemanggilan dari runtime non-async seperti Streamlit."""
+    try:
+        return asyncio.run(generate_chat_response(message, history, active_context))
+    except RuntimeError:
+        # Jika sudah berada di dalam event loop aktif
+        reply_text = clean_chatbot_reply(fallback_local_reply(message))
+        return {
+            "status": "success",
+            "reply": reply_text,
+            "suggest_cs": check_is_cs_requested(message),
+            "cs_info": CS_INFO,
+            "quick_actions": ["Apa itu Proof of Cash?", "Bagaimana audit COD 3-arah?", "Hubungi CS WhatsApp"]
+        }
+
 

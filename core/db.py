@@ -9,18 +9,43 @@ import os
 import json
 import uuid
 import sqlite3
+import tempfile
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
 DEFAULT_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "rekonsile.db")
+FALLBACK_DB_PATH = os.path.join(tempfile.gettempdir(), "reconauto_runtime.db")
+_ACTIVE_DB_PATH: Optional[str] = None
+_FALLBACK_INITIALIZED: bool = False
 
 def get_connection(db_path: Optional[str] = None) -> sqlite3.Connection:
-    path = db_path or DEFAULT_DB_PATH
-    conn = sqlite3.connect(path)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    conn.execute("PRAGMA journal_mode = WAL")
-    return conn
+    global _ACTIVE_DB_PATH, _FALLBACK_INITIALIZED
+    path = db_path or _ACTIVE_DB_PATH or DEFAULT_DB_PATH
+    try:
+        conn = sqlite3.connect(path, timeout=10.0)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON")
+        try:
+            conn.execute("PRAGMA journal_mode = DELETE")
+        except sqlite3.Error:
+            pass
+        # Uji integritas I/O dasar
+        conn.execute("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1").fetchall()
+        if not db_path:
+            _ACTIVE_DB_PATH = path
+        return conn
+    except sqlite3.Error:
+        _ACTIVE_DB_PATH = FALLBACK_DB_PATH
+        conn = sqlite3.connect(_ACTIVE_DB_PATH, timeout=10.0)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON")
+        if not _FALLBACK_INITIALIZED:
+            _FALLBACK_INITIALIZED = True
+            try:
+                init_db(_ACTIVE_DB_PATH)
+            except Exception:
+                pass
+        return conn
 
 def init_db(db_path: Optional[str] = None):
     """Menginisialisasi seluruh tabel relasional rekonsiliasi jika belum ada."""

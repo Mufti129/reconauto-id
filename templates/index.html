@@ -1450,54 +1450,54 @@
           </div>
 
           <!-- SUCCESS STATE VIEW -->
-          <div x-show="syncSuccessData" class="bg-gradient-to-r from-emerald-900 to-teal-900 rounded-xl p-5 text-white space-y-4 shadow-lg">
+          <div x-show="syncSuccessData" class="bg-emerald-50 border border-emerald-200 rounded-xl p-5 text-slate-900 space-y-4 shadow-sm">
             <div class="flex items-start justify-between">
               <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xl font-bold">
-                  ✓
+                <div class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white text-lg font-bold shadow-sm">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                 </div>
                 <div>
-                  <h4 class="text-sm font-bold">Sinkronisasi Jurnal Berhasil Dibukukan!</h4>
-                  <p class="text-xs text-emerald-200" x-text="syncSuccessData?.message"></p>
+                  <h4 class="text-sm font-bold text-emerald-950">Sinkronisasi Jurnal Berhasil Dibukukan!</h4>
+                  <p class="text-xs text-emerald-800" x-text="syncSuccessData?.message"></p>
                 </div>
               </div>
-              <span class="px-2.5 py-1 rounded bg-emerald-800/80 text-emerald-300 text-[10px] font-mono font-bold" x-text="syncSuccessData?.status"></span>
+              <span class="px-2.5 py-1 rounded bg-emerald-100 border border-emerald-300 text-emerald-800 text-[10px] font-mono font-bold" x-text="syncSuccessData?.status"></span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-emerald-700/40 border border-emerald-500/30 rounded-lg p-3 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white border border-emerald-200 rounded-lg p-3 text-xs">
               <div>
-                <span class="text-emerald-300 text-[10px] uppercase">Nomor Voucher Resmi</span>
+                <span class="text-slate-500 text-[10px] uppercase font-semibold">Nomor Voucher Resmi</span>
                 <div class="flex items-center space-x-2 mt-0.5">
-                  <span class="font-mono font-bold text-white text-sm" x-text="syncSuccessData?.journal_ref_number"></span>
-                  <button @click="copyVoucher(syncSuccessData?.journal_ref_number)" title="Salin No. Voucher" class="p-1 hover:bg-white/10 rounded transition text-emerald-200">
+                  <span class="font-mono font-bold text-emerald-700 text-sm" x-text="syncSuccessData?.journal_ref_number"></span>
+                  <button @click="copyVoucher(syncSuccessData?.journal_ref_number)" title="Salin No. Voucher" class="p-1 hover:bg-slate-100 rounded transition text-slate-500 hover:text-slate-800">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                   </button>
                 </div>
               </div>
               <div>
-                <span class="text-emerald-300 text-[10px] uppercase">Vendor Akuntansi</span>
-                <p class="font-bold text-white mt-0.5" x-text="syncSuccessData?.provider_name"></p>
+                <span class="text-slate-500 text-[10px] uppercase font-semibold">Vendor Akuntansi</span>
+                <p class="font-bold text-slate-900 mt-0.5" x-text="syncSuccessData?.provider_name"></p>
               </div>
               <div>
-                <span class="text-emerald-300 text-[10px] uppercase">Total Nilai Klop</span>
-                <p class="font-mono-num font-bold text-white mt-0.5">Rp <span x-text="formatNumber(syncSuccessData?.total_nominal)"></span></p>
+                <span class="text-slate-500 text-[10px] uppercase font-semibold">Total Nilai Klop</span>
+                <p class="font-mono-num font-bold text-slate-900 mt-0.5">Rp <span x-text="formatNumber(syncSuccessData?.total_nominal)"></span></p>
               </div>
             </div>
 
             <div class="flex items-center justify-between pt-1">
-              <button type="button" @click="showPayloadInspector = !showPayloadInspector" class="text-xs text-emerald-300 hover:text-white flex items-center space-x-1 font-semibold underline underline-offset-2">
+              <button type="button" @click="showPayloadInspector = !showPayloadInspector" class="text-xs text-emerald-700 hover:text-emerald-900 flex items-center space-x-1 font-semibold underline underline-offset-2">
                 <span x-text="showPayloadInspector ? 'Sembunyikan Raw JSON Payload' : 'Inspeksi JSON API Payload Vendor'"></span>
               </button>
-              <button type="button" @click="syncModalOpen = false; openSyncLogsModal()" class="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-xs font-semibold transition">
+              <button type="button" @click="syncModalOpen = false; openSyncLogsModal()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition shadow-xs">
                 Buka Log Audit →
               </button>
             </div>
 
             <!-- COLLAPSIBLE JSON PAYLOAD INSPECTOR -->
-            <div x-show="showPayloadInspector" class="bg-slate-950 rounded-lg p-3 text-slate-200 font-mono text-[11px] overflow-x-auto max-h-60 border border-emerald-500/30">
-              <div class="flex items-center justify-between text-[10px] text-slate-400 pb-1 border-b border-slate-800 mb-2">
+            <div x-show="showPayloadInspector" class="bg-slate-50 rounded-lg p-3 text-slate-800 font-mono text-[11px] overflow-x-auto max-h-60 border border-slate-200 shadow-inner">
+              <div class="flex items-center justify-between text-[10px] text-slate-500 pb-1 border-b border-slate-200 mb-2">
                 <span>Payload Transmisi HTTP POST:</span>
-                <span class="text-emerald-400">Content-Type: application/json</span>
+                <span class="text-emerald-700 font-semibold">Content-Type: application/json</span>
               </div>
               <pre x-text="JSON.stringify(syncSuccessData?.payload, null, 2)"></pre>
             </div>
@@ -1705,7 +1705,7 @@
         <div class="flex items-center space-x-2">
           <!-- Button WhatsApp CS Header -->
           <a :href="csInfo.whatsapp_url" target="_blank" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-sm transition active:scale-95">
-            <svg class="w-3.5 h-3.5 text-slate-500 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+            <svg class="w-3.5 h-3.5 text-white inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
             <span>CS WA</span>
           </a>
           <!-- Minimize / Close -->
@@ -1785,7 +1785,7 @@
         <!-- TYPING INDICATOR -->
         <div x-show="chatLoading" class="flex items-end space-x-2">
           <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-xs shrink-0">
-            <span class="text-xs font-bold text-blue-600">AI</span>
+            <span class="text-xs font-bold text-white">AI</span>
           </div>
           <div class="px-4 py-3 bg-white border border-slate-200 rounded-2xl rounded-bl-xs shadow-sm flex items-center space-x-1.5">
             <div class="w-2 h-2 rounded-full bg-blue-600 animate-bounce" style="animation-delay: 0ms"></div>
@@ -1935,16 +1935,17 @@
 
         getMappedCoa(accountName) {
           const name = (accountName || '').toUpperCase();
-          if (name.includes('BANK') || name.includes('BCA')) return '1-1001';
+          if (name.includes('BANK') || name.includes('BCA') || name.includes('MANDIRI')) return '1-1001';
           if (name.includes('TIKTOK')) return '1-1020';
           if (name.includes('SHOPEE')) return '1-1021';
           if (name.includes('DOKU') || name.includes('PG')) return '1-1022';
-          if (name.includes('KASIR') || name.includes('POS') || name.includes('KAS')) return '1-1010';
+          if (name.includes('KASIR') || name.includes('POS') || name.includes('KAS TUNAI')) return '1-1010';
           if (name.includes('KOMISI') || name.includes('FEE')) return '6-2001';
           if (name.includes('SELISIH') || name.includes('SHORTAGE')) return '6-9001';
           if (name.includes('BUNGA') && !name.includes('PAJAK')) return '8-1001';
           if (name.includes('PAJAK')) return '6-3002';
           if (name.includes('ADMIN')) return '6-3001';
+          if (name.includes('TITIPAN') || name.includes('BELUM TERIDENTIFIKASI')) return '2-9001';
           return '1-9999';
         },
 
@@ -2156,18 +2157,27 @@
 
           const ctxPie = document.getElementById('sourcesPieChart');
           if (ctxPie) {
+            const pieValues = [
+              summary.total_bank_cleared || 0,
+              summary.in_transit_amount || 0,
+              summary.missing_payout_amount || 0,
+              summary.unsettled_cash_amount || 0,
+              summary.unidentified_bank_credits || 0
+            ];
+            const pieTotal = pieValues.reduce((a, b) => a + b, 0) || 1;
+            const pct = (v) => ((v / pieTotal) * 100).toFixed(1) + '%';
             this.pieChartInstance = new Chart(ctxPie, {
               type: 'doughnut',
               data: {
-                labels: ['Klop Bank (72.7%)', 'In-Transit (7.1%)', 'Missing Payout (4.4%)', 'Kas Toko (4.0%)', 'Unidentified (9.1%)'],
+                labels: [
+                  `Klop Bank (${pct(pieValues[0])})`,
+                  `In-Transit (${pct(pieValues[1])})`,
+                  `Missing Payout (${pct(pieValues[2])})`,
+                  `Kas Toko (${pct(pieValues[3])})`,
+                  `Unidentified (${pct(pieValues[4])})`
+                ],
                 datasets: [{
-                  data: [
-                    summary.total_bank_cleared,
-                    summary.in_transit_amount,
-                    summary.missing_payout_amount,
-                    summary.unsettled_cash_amount,
-                    summary.unidentified_bank_credits
-                  ],
+                  data: pieValues,
                   backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#64748b', '#8b5cf6']
                 }]
               },

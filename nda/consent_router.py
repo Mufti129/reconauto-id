@@ -202,8 +202,8 @@ def download_nda_pdf(consent_id: str):
     from .pdf_generator import generate_nda_pdf_bytes
 
     if consent_id == "latest":
-        consents = storage.get_all_consents()
-        record = consents[0] if consents else _build_default_nda_record()
+        # Gunakan spesimen resmi untuk endpoint publik 'latest' guna mencegah kebocoran PII antar-pengguna (IDOR protection)
+        record = _build_default_nda_record()
     else:
         record = storage.find_by_consent_id(consent_id)
         if not record:

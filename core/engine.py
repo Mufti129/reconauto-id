@@ -10,6 +10,7 @@ Engine Rekonsiliasi Dua Arah (Bidirectional 2-Tier Matching Engine):
 """
 
 from typing import List, Dict, Any, Tuple, Optional
+from collections import defaultdict
 from datetime import datetime
 from .models import (
     SourceChannel, CanonicalTransaction, BankStatementRow,
@@ -102,26 +103,34 @@ class BidirectionalReconciliationEngine:
             if ref:
                 batch_cod_groups.setdefault(ref, []).append(cod)
                 
+        # Pre-index credit bank rows (O(N+M) optimization)
+        cr_bank_rows = [(b, (b.description or "").lower()) for b in bank_rows if b.txn_type == "CR"]
+        bucket_width = max(self.tolerance, 1.0)
+        cod_amount_buckets: Dict[int, List[BankStatementRow]] = defaultdict(list)
+        for b, _ in cr_bank_rows:
+            cod_amount_buckets[int(round(b.amount / bucket_width))].append(b)
+
         # 1. Match courier batches to bank rows
         for ref_id, items in batch_cod_groups.items():
             net_sum = sum(i.net_remitted for i in items)
             matched_bank = None
+            ref_lower = ref_id.lower()
             
             # Pass 1: Match ref_id in bank description
-            for b in bank_rows:
-                if b.txn_type != "CR":
-                    continue
-                if ref_id.lower() in b.description.lower():
+            for b, desc_lower in cr_bank_rows:
+                if ref_lower in desc_lower:
                     matched_bank = b
                     break
                     
-            # Pass 2: Match exact net sum
+            # Pass 2: O(1) Bucket Lookup for exact/tolerance net sum
             if not matched_bank:
-                for b in bank_rows:
-                    if b.matched or b.txn_type != "CR":
-                        continue
-                    if abs(b.amount - net_sum) <= self.tolerance:
-                        matched_bank = b
+                target_bucket = int(round(net_sum / bucket_width))
+                for k in (target_bucket - 1, target_bucket, target_bucket + 1):
+                    for b in cod_amount_buckets.get(k, ()):
+                        if not b.matched and abs(b.amount - net_sum) <= self.tolerance:
+                            matched_bank = b
+                            break
+                    if matched_bank:
                         break
                         
             if matched_bank:
@@ -302,6 +311,13 @@ class BidirectionalReconciliationEngine:
         valid_bank_dates = [b.date for b in bank_rows if b.date]
         cutoff_date = max(valid_bank_dates) if valid_bank_dates else "2026-08-15"
 
+        # Pre-index credit bank rows & bucket nominal untuk O(N+M) lookup
+        cr_bank_rows = [(b, (b.description or "").lower()) for b in bank_rows if b.txn_type == "CR"]
+        bucket_width = max(self.tolerance, 1.0)
+        amount_buckets: Dict[int, List[BankStatementRow]] = defaultdict(list)
+        for b, _ in cr_bank_rows:
+            amount_buckets[int(round(b.amount / bucket_width))].append(b)
+
         for batch in batches:
             # Khusus Kasir Tunai yang belum disetor
             if batch.batch_id == "BELUM_SETOR":
@@ -325,25 +341,26 @@ class BidirectionalReconciliationEngine:
 
             # Cari mutasi kredit bank yang cocok
             matched_bank_row = None
+            batch_id_lower = batch.batch_id.lower()
             
             # Pass 1: Cocokkan nomor Batch Ref di keterangan mutasi bank
-            for b_row in bank_rows:
-                if b_row.txn_type != "CR":
-                    continue
+            for b_row, desc_lower in cr_bank_rows:
                 if b_row.matched and b_row.matched_with == batch.batch_id:
                     matched_bank_row = b_row
                     break
-                if not b_row.matched and batch.batch_id.lower() in b_row.description.lower():
+                if not b_row.matched and batch_id_lower in desc_lower:
                     matched_bank_row = b_row
                     break
                     
-            # Pass 2: Jika belum ketemu, cocokkan nominal persis + rentang tanggal
+            # Pass 2: Jika belum ketemu, O(1) Bucket Lookup nominal persis + toleransi
             if not matched_bank_row:
-                for b_row in bank_rows:
-                    if b_row.matched or b_row.txn_type != "CR":
-                        continue
-                    if abs(b_row.amount - batch.net_sum) <= self.tolerance:
-                        matched_bank_row = b_row
+                target_bucket = int(round(batch.net_sum / bucket_width))
+                for k in (target_bucket - 1, target_bucket, target_bucket + 1):
+                    for b_row in amount_buckets.get(k, ()):
+                        if not b_row.matched and abs(b_row.amount - batch.net_sum) <= self.tolerance:
+                            matched_bank_row = b_row
+                            break
+                    if matched_bank_row:
                         break
 
             if matched_bank_row:

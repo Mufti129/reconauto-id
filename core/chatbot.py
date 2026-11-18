@@ -160,47 +160,48 @@ async def query_gemini(
     if not GEMINI_API_KEY or not GEMINI_API_KEY.strip():
         return fallback_local_reply(prompt)
 
-    def _call_gemini_sync() -> str:
-        import urllib.request
-        import ssl
-        
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-        
-        models_to_try = [PRIMARY_MODEL] + FALLBACK_MODELS
-        last_error = None
-        
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": GEMINI_API_KEY.strip(),
+    }
+    models_to_try = [PRIMARY_MODEL] + FALLBACK_MODELS
+    last_error = None
+
+    try:
+        import certifi
+        ssl_verify: Any = certifi.where()
+    except ImportError:
+        ssl_verify = True
+
+    async with httpx.AsyncClient(
+        timeout=httpx.Timeout(25.0, connect=6.0),
+        verify=ssl_verify,
+    ) as client:
         for model in models_to_try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
-            req = urllib.request.Request(
-                url,
-                data=json.dumps(payload).encode("utf-8"),
-                headers={"Content-Type": "application/json"},
-                method="POST"
-            )
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
             try:
-                with urllib.request.urlopen(req, timeout=28, context=ctx) as resp:
-                    if resp.status == 200:
-                        res_json = json.loads(resp.read().decode("utf-8"))
-                        candidates = res_json.get("candidates", [])
-                        if candidates:
-                            parts = candidates[0].get("content", {}).get("parts", [])
-                            if parts:
-                                return parts[0].get("text", "").strip()
-            except urllib.error.HTTPError as e:
-                logger.warning(f"Gemini model {model} returned HTTPError {e.code}. Trying next model...")
-                last_error = f"HTTP {e.code}"
-                continue
-            except Exception as e:
-                logger.warning(f"Error calling Gemini model {model}: {e}. Trying fallback...")
+                resp = await client.post(url, json=payload, headers=headers)
+                if resp.status_code == 200:
+                    res_json = resp.json()
+                    candidates = res_json.get("candidates", [])
+                    if candidates:
+                        parts = candidates[0].get("content", {}).get("parts", [])
+                        if parts:
+                            return parts[0].get("text", "").strip()
+                else:
+                    logger.warning(f"Gemini model {model} returned HTTP {resp.status_code}. Trying next model...")
+                    last_error = f"HTTP {resp.status_code}"
+            except httpx.HTTPError as e:
+                logger.warning(f"HTTP error calling Gemini model {model}: {e}. Trying fallback...")
                 last_error = str(e)
                 continue
-                
-        logger.error(f"Semua panggilan Gemini gagal. Error terakhir: {last_error}")
-        return fallback_local_reply(prompt)
+            except Exception as e:
+                logger.warning(f"Unexpected error calling Gemini model {model}: {e}. Trying fallback...")
+                last_error = str(e)
+                continue
 
-    return await asyncio.to_thread(_call_gemini_sync)
+    logger.error(f"Semua panggilan Gemini gagal. Error terakhir: {last_error}")
+    return fallback_local_reply(prompt)
 
 
 def fallback_local_reply(prompt: str) -> str:

@@ -17,6 +17,7 @@ DEFAULT_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "reko
 FALLBACK_DB_PATH = os.path.join(tempfile.gettempdir(), "reconauto_runtime.db")
 _ACTIVE_DB_PATH: Optional[str] = None
 _FALLBACK_INITIALIZED: bool = False
+_INITIALIZED_DB_PATHS: set = set()
 
 def get_connection(db_path: Optional[str] = None) -> sqlite3.Connection:
     global _ACTIVE_DB_PATH, _FALLBACK_INITIALIZED
@@ -42,13 +43,17 @@ def get_connection(db_path: Optional[str] = None) -> sqlite3.Connection:
         if not _FALLBACK_INITIALIZED:
             _FALLBACK_INITIALIZED = True
             try:
-                init_db(_ACTIVE_DB_PATH)
+                init_db(_ACTIVE_DB_PATH, force=True)
             except Exception:
                 pass
         return conn
 
-def init_db(db_path: Optional[str] = None):
-    """Menginisialisasi seluruh tabel relasional rekonsiliasi jika belum ada."""
+def init_db(db_path: Optional[str] = None, force: bool = False):
+    """Menginisialisasi seluruh tabel relasional rekonsiliasi jika belum ada (idempotent & cached)."""
+    target_path = db_path or _ACTIVE_DB_PATH or DEFAULT_DB_PATH
+    if not force and target_path in _INITIALIZED_DB_PATHS and os.path.exists(target_path):
+        return
+
     conn = get_connection(db_path)
     cursor = conn.cursor()
 
@@ -401,6 +406,7 @@ def init_db(db_path: Optional[str] = None):
 
     conn.commit()
     conn.close()
+    _INITIALIZED_DB_PATHS.add(target_path)
 
 def save_reconciliation_run(
     result: Dict[str, Any],
@@ -408,12 +414,11 @@ def save_reconciliation_run(
     db_path: Optional[str] = None
 ) -> str:
     """
-    Menyimpan sesi rekonsiliasi lengkap ke dalam SQLite.
+    Menyimpan sesi rekonsiliasi lengkap ke dalam SQLite secara atomik (batch executemany).
     Mengembalikan run_id unik.
     """
     init_db(db_path)
     conn = get_connection(db_path)
-    cursor = conn.cursor()
 
     metadata = metadata or {}
     now = datetime.now()
@@ -425,169 +430,191 @@ def save_reconciliation_run(
     txns = result.get("transactions", [])
     bank_rows = result.get("bank_rows", [])
     discrepancies = result.get("discrepancies", [])
+    cod_settlements = result.get("cod_settlements", [])
 
-    # 1. Simpan Run Header
     ws_id = metadata.get("workspace_id", "ws-default")
     user_id = metadata.get("user_id", "user-demo")
-    cursor.execute("""
-    INSERT INTO reconciliation_runs (
-        id, user_id, workspace_id, run_date, period_start, period_end, source_description,
-        total_gross, total_fees, total_net, total_bank_cleared,
-        bank_total_credits, bank_total_debits, in_transit_amount, missing_payout_amount,
-        proof_difference, is_balanced, match_rate_pct,
-        transactions_count, batches_count, exceptions_count,
-        raw_summary_json, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        run_id,
-        user_id,
-        ws_id,
-        run_date,
-        metadata.get("period_start", ""),
-        metadata.get("period_end", ""),
-        metadata.get("source", "Sistem Rekonsiliasi Otomatis"),
-        summary.get("total_gross_sales", 0.0),
-        summary.get("total_platform_fees", 0.0),
-        summary.get("total_expected_net", 0.0),
-        summary.get("total_bank_cleared", 0.0),
-        summary.get("bank_total_credits", 0.0),
-        summary.get("bank_total_debits", 0.0),
-        summary.get("in_transit_amount", 0.0),
-        summary.get("missing_payout_amount", 0.0),
-        summary.get("proof_difference", 0.0),
-        1 if summary.get("is_balanced", True) else 0,
-        summary.get("match_rate_pct", 0.0),
-        len(txns),
-        len(batches),
-        len(discrepancies),
-        json.dumps(summary),
-        run_date
-    ))
 
-    # 2. Simpan Batches
-    for b in batches:
-        status = b.get("status", "UNMATCHED")
-        is_open = 1 if status in ["TIMING_LAG", "CASH_IN_DRAWER"] else 0
-        cursor.execute("""
-        INSERT INTO stored_batches (
-            run_id, batch_id, channel, settlement_date, order_count,
-            gross_sum, fee_sum, net_sum, bank_matched, bank_date,
-            bank_amount, difference, status, notes, is_open_in_transit
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            run_id,
-            b.get("batch_id", ""),
-            b.get("channel", ""),
-            b.get("settlement_date", ""),
-            b.get("order_count", 0),
-            b.get("gross_sum", 0.0),
-            b.get("fee_sum", 0.0),
-            b.get("net_sum", 0.0),
-            1 if b.get("bank_matched", False) else 0,
-            b.get("bank_date"),
-            b.get("bank_amount", 0.0),
-            b.get("difference", 0.0),
-            status,
-            b.get("notes", ""),
-            is_open
-        ))
+    try:
+        with conn:
+            cursor = conn.cursor()
 
-    # 3. Simpan Transaksi Kanonikal
-    for t in txns:
-        cursor.execute("""
-        INSERT INTO stored_transactions (
-            run_id, txn_id, channel, date, description,
-            gross_amount, fee_amount, net_amount, batch_id,
-            raw_status, metadata_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            run_id,
-            t.get("txn_id", ""),
-            t.get("channel", ""),
-            t.get("date", ""),
-            t.get("description", ""),
-            t.get("gross_amount", 0.0),
-            t.get("fee_amount", 0.0),
-            t.get("net_amount", 0.0),
-            t.get("batch_id", ""),
-            t.get("raw_status", ""),
-            json.dumps(t.get("metadata", {}))
-        ))
+            # 1. Simpan Run Header
+            cursor.execute("""
+            INSERT INTO reconciliation_runs (
+                id, user_id, workspace_id, run_date, period_start, period_end, source_description,
+                total_gross, total_fees, total_net, total_bank_cleared,
+                bank_total_credits, bank_total_debits, in_transit_amount, missing_payout_amount,
+                proof_difference, is_balanced, match_rate_pct,
+                transactions_count, batches_count, exceptions_count,
+                raw_summary_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                run_id,
+                user_id,
+                ws_id,
+                run_date,
+                metadata.get("period_start", ""),
+                metadata.get("period_end", ""),
+                metadata.get("source", "Sistem Rekonsiliasi Otomatis"),
+                summary.get("total_gross_sales", 0.0),
+                summary.get("total_platform_fees", 0.0),
+                summary.get("total_expected_net", 0.0),
+                summary.get("total_bank_cleared", 0.0),
+                summary.get("bank_total_credits", 0.0),
+                summary.get("bank_total_debits", 0.0),
+                summary.get("in_transit_amount", 0.0),
+                summary.get("missing_payout_amount", 0.0),
+                summary.get("proof_difference", 0.0),
+                1 if summary.get("is_balanced", True) else 0,
+                summary.get("match_rate_pct", 0.0),
+                len(txns),
+                len(batches),
+                len(discrepancies),
+                json.dumps(summary),
+                run_date
+            ))
 
-    # 4. Simpan Mutasi Bank
-    for bk in bank_rows:
-        cursor.execute("""
-        INSERT INTO stored_bank_rows (
-            run_id, row_id, date, description, amount, txn_type,
-            balance, matched, matched_batch_id, bank_code, account_number
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            run_id,
-            bk.get("row_id", ""),
-            bk.get("date", ""),
-            bk.get("description", ""),
-            bk.get("amount", 0.0),
-            bk.get("txn_type", "CR"),
-            bk.get("balance"),
-            1 if bk.get("matched", False) else 0,
-            bk.get("matched_batch_id"),
-            bk.get("bank_code", "BCA"),
-            bk.get("account_number")
-        ))
+            # 2. Batch Insert Batches
+            if batches:
+                batch_params = [
+                    (
+                        run_id,
+                        b.get("batch_id", ""),
+                        b.get("channel", ""),
+                        b.get("settlement_date", ""),
+                        b.get("order_count", 0),
+                        b.get("gross_sum", 0.0),
+                        b.get("fee_sum", 0.0),
+                        b.get("net_sum", 0.0),
+                        1 if b.get("bank_matched", False) else 0,
+                        b.get("bank_date"),
+                        b.get("bank_amount", 0.0),
+                        b.get("difference", 0.0),
+                        b.get("status", "UNMATCHED"),
+                        b.get("notes", ""),
+                        1 if b.get("status", "UNMATCHED") in ["TIMING_LAG", "CASH_IN_DRAWER"] else 0
+                    )
+                    for b in batches
+                ]
+                cursor.executemany("""
+                INSERT INTO stored_batches (
+                    run_id, batch_id, channel, settlement_date, order_count,
+                    gross_sum, fee_sum, net_sum, bank_matched, bank_date,
+                    bank_amount, difference, status, notes, is_open_in_transit
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, batch_params)
 
-    # 5. Simpan Discrepancies
-    for d in discrepancies:
-        cursor.execute("""
-        INSERT INTO stored_discrepancies (
-            run_id, disc_id, direction, channel, reference_id,
-            date, issue_type, severity, expected_amount, actual_amount,
-            discrepancy_amount, probable_cause, recommended_action, resolution_status, channel_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            run_id,
-            d.get("id", ""),
-            d.get("direction", ""),
-            d.get("channel", ""),
-            d.get("reference_id", ""),
-            d.get("date", ""),
-            d.get("issue_type", ""),
-            d.get("severity", "MEDIUM"),
-            d.get("expected_amount", 0.0),
-            d.get("actual_amount", 0.0),
-            d.get("discrepancy_amount", 0.0),
-            d.get("probable_cause", ""),
-            d.get("recommended_action", ""),
-            "OPEN",
-            d.get("channel", "")
-        ))
+            # 3. Batch Insert Transaksi Kanonikal
+            if txns:
+                txn_params = [
+                    (
+                        run_id,
+                        t.get("txn_id", ""),
+                        t.get("channel", ""),
+                        t.get("date", ""),
+                        t.get("description", ""),
+                        t.get("gross_amount", 0.0),
+                        t.get("fee_amount", 0.0),
+                        t.get("net_amount", 0.0),
+                        t.get("batch_id", ""),
+                        t.get("raw_status", ""),
+                        json.dumps(t.get("metadata", {}))
+                    )
+                    for t in txns
+                ]
+                cursor.executemany("""
+                INSERT INTO stored_transactions (
+                    run_id, txn_id, channel, date, description,
+                    gross_amount, fee_amount, net_amount, batch_id,
+                    raw_status, metadata_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, txn_params)
 
-    # 6. Simpan Settlement COD Kurir (Fase 3A)
-    cod_settlements = result.get("cod_settlements", [])
-    now_ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    for c in cod_settlements:
-        cursor.execute("""
-        INSERT INTO stored_cod_settlements (
-            run_id, awb_number, courier_name, order_id, cod_amount,
-            courier_fee, net_remitted, settlement_date, bank_ref_id,
-            status, metadata_json, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            run_id,
-            c.get("awb_number", ""),
-            c.get("courier_name", ""),
-            c.get("order_id", ""),
-            c.get("cod_amount", 0.0),
-            c.get("courier_fee", 0.0),
-            c.get("net_remitted", 0.0),
-            c.get("settlement_date", ""),
-            c.get("bank_ref_id"),
-            c.get("status", "PENDING"),
-            json.dumps(c.get("metadata", {})),
-            now_ts
-        ))
+            # 4. Batch Insert Mutasi Bank
+            if bank_rows:
+                bank_params = [
+                    (
+                        run_id,
+                        bk.get("row_id", ""),
+                        bk.get("date", ""),
+                        bk.get("description", ""),
+                        bk.get("amount", 0.0),
+                        bk.get("txn_type", "CR"),
+                        bk.get("balance"),
+                        1 if bk.get("matched", False) else 0,
+                        bk.get("matched_batch_id"),
+                        bk.get("bank_code", "BCA"),
+                        bk.get("account_number")
+                    )
+                    for bk in bank_rows
+                ]
+                cursor.executemany("""
+                INSERT INTO stored_bank_rows (
+                    run_id, row_id, date, description, amount, txn_type,
+                    balance, matched, matched_batch_id, bank_code, account_number
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, bank_params)
 
-    conn.commit()
-    conn.close()
+            # 5. Batch Insert Discrepancies
+            if discrepancies:
+                disc_params = [
+                    (
+                        run_id,
+                        d.get("id", ""),
+                        d.get("direction", ""),
+                        d.get("channel", ""),
+                        d.get("reference_id", ""),
+                        d.get("date", ""),
+                        d.get("issue_type", ""),
+                        d.get("severity", "MEDIUM"),
+                        d.get("expected_amount", 0.0),
+                        d.get("actual_amount", 0.0),
+                        d.get("discrepancy_amount", 0.0),
+                        d.get("probable_cause", ""),
+                        d.get("recommended_action", ""),
+                        "OPEN",
+                        d.get("channel", "")
+                    )
+                    for d in discrepancies
+                ]
+                cursor.executemany("""
+                INSERT INTO stored_discrepancies (
+                    run_id, disc_id, direction, channel, reference_id,
+                    date, issue_type, severity, expected_amount, actual_amount,
+                    discrepancy_amount, probable_cause, recommended_action, resolution_status, channel_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, disc_params)
+
+            # 6. Batch Insert Settlement COD Kurir (Fase 3A)
+            if cod_settlements:
+                cod_params = [
+                    (
+                        run_id,
+                        c.get("awb_number", ""),
+                        c.get("courier_name", ""),
+                        c.get("order_id", ""),
+                        c.get("cod_amount", 0.0),
+                        c.get("courier_fee", 0.0),
+                        c.get("net_remitted", 0.0),
+                        c.get("settlement_date", ""),
+                        c.get("bank_ref_id"),
+                        c.get("status", "PENDING"),
+                        json.dumps(c.get("metadata", {})),
+                        run_date
+                    )
+                    for c in cod_settlements
+                ]
+                cursor.executemany("""
+                INSERT INTO stored_cod_settlements (
+                    run_id, awb_number, courier_name, order_id, cod_amount,
+                    courier_fee, net_remitted, settlement_date, bank_ref_id,
+                    status, metadata_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, cod_params)
+    finally:
+        conn.close()
+
     return run_id
 
 def get_reconciliation_runs(limit: int = 50, workspace_id: Optional[str] = None, db_path: Optional[str] = None) -> List[Dict[str, Any]]:
@@ -678,6 +705,31 @@ def get_run_by_id(run_id: str, db_path: Optional[str] = None) -> Optional[Dict[s
         "cod_settlements": cod_settlements,
         "transactions_count": len(txns)
     }
+
+def get_latest_run(workspace_id: Optional[str] = "ws-default", db_path: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Memuat data sesi rekonsiliasi paling mutakhir untuk workspace tertentu dari SQLite."""
+    init_db(db_path)
+    conn = get_connection(db_path)
+    try:
+        cursor = conn.cursor()
+        if workspace_id:
+            cursor.execute(
+                "SELECT id FROM reconciliation_runs WHERE workspace_id = ? ORDER BY created_at DESC LIMIT 1",
+                (workspace_id,)
+            )
+            row = cursor.fetchone()
+            if not row:
+                cursor.execute("SELECT id FROM reconciliation_runs ORDER BY created_at DESC LIMIT 1")
+                row = cursor.fetchone()
+        else:
+            cursor.execute("SELECT id FROM reconciliation_runs ORDER BY created_at DESC LIMIT 1")
+            row = cursor.fetchone()
+    finally:
+        conn.close()
+
+    if not row:
+        return None
+    return get_run_by_id(row["id"], db_path=db_path)
 
 def get_open_in_transit_batches(workspace_id: Optional[str] = None, db_path: Optional[str] = None) -> List[Dict[str, Any]]:
     """

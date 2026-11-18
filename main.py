@@ -25,7 +25,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import run_in_threadpool
 
-from core.parser import parse_file
+from core.parser import parse_file, parse_multi_source, inspect_file_format
 from core.parsers.registry import default_registry
 from core.engine import BidirectionalReconciliationEngine
 from core.exporter import (
@@ -33,7 +33,7 @@ from core.exporter import (
     generate_journal_csv,
     generate_journal_entries_data
 )
-from core.models import SourceChannel, CodSettlementRow
+from core.models import SourceChannel, CodSettlementRow, BankStatementRow, CanonicalTransaction
 from core.dispute import (
     generate_dispute_data,
     generate_dispute_email_text,
@@ -68,7 +68,15 @@ logger = logging.getLogger("reconauto.api")
 MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "25"))
 MAX_FILE_SIZE_BYTES = MAX_UPLOAD_MB * 1024 * 1024
 MAX_FILES_PER_REQUEST = 30
-ALLOWED_EXTENSIONS = {".csv", ".xlsx", ".xls", ".pdf", ".sta", ".mt940", ".txt"}
+ALLOWED_EXTENSIONS = {
+    ".csv", ".tsv", ".txt",
+    ".xlsx", ".xls",
+    ".pdf",
+    ".sta", ".mt940", ".swift",
+    ".xml", ".camt053", ".ofx", ".qfx",
+    ".json", ".jsonl", ".ndjson",
+    ".zip"
+}
 
 # In-memory cache terisolasi per workspace & run_id (dengan fallback otomatis ke SQLite)
 LATEST_RESULT: Optional[Dict[str, Any]] = None
@@ -242,27 +250,42 @@ if os.path.exists(static_dir):
 # HELPER EKSEKUSI SINKRON (UNTUK THREADPOOL)
 # ==========================================
 
+def _route_parsed_records(
+    channel: SourceChannel,
+    data: List[Any],
+    bank_rows: List[BankStatementRow],
+    source_txns: List[CanonicalTransaction],
+    cod_settlements: List[CodSettlementRow]
+) -> None:
+    """Mengelompokkan hasil ekstraksi multi-format berdasarkan tipe objek kanonikal maupun kanal."""
+    if not data:
+        return
+    first = data[0]
+    if isinstance(first, BankStatementRow) or "BANK" in channel.value:
+        bank_rows.extend(data)
+    elif isinstance(first, CodSettlementRow) or "LOGISTICS" in channel.value:
+        cod_settlements.extend(data)
+    else:
+        source_txns.extend(data)
+
+
 def _execute_reconciliation_pipeline(
     raw_files: List[ tuple ],
     workspace_id: str,
     source_label: str
 ) -> Dict[str, Any]:
-    """Menjalankan parsing, rekonsiliasi 4-tier, dan penyimpanan SQLite di thread terpisah."""
-    bank_rows = []
-    source_txns = []
-    cod_settlements = []
+    """Menjalankan parsing multi-format (termasuk ZIP & Multi-Sheet Excel), rekonsiliasi 4-tier, dan penyimpanan SQLite."""
+    bank_rows: List[BankStatementRow] = []
+    source_txns: List[CanonicalTransaction] = []
+    cod_settlements: List[CodSettlementRow] = []
 
     for filename, content in raw_files:
-        channel, data = parse_file(content, filename=filename)
-        if "BANK" in channel.value:
-            bank_rows.extend(data)
-        elif "LOGISTICS" in channel.value:
-            cod_settlements.extend(data)
-        else:
-            source_txns.extend(data)
+        segments = parse_multi_source(content, filename=filename)
+        for channel, data, _label in segments:
+            _route_parsed_records(channel, data, bank_rows, source_txns, cod_settlements)
 
     if not bank_rows and not source_txns and not cod_settlements:
-        return {"error": "Format file tidak dikenali atau tidak ada data yang valid."}
+        return {"error": "Format file tidak dikenali atau tidak ada data transaksi yang valid."}
 
     open_batches = get_open_in_transit_batches(workspace_id=workspace_id)
     engine = BidirectionalReconciliationEngine()
@@ -320,7 +343,45 @@ async def get_supported_sources():
     return {
         "status": "success",
         "sources": sources,
-        "total_sources": len(sources)
+        "total_sources": len(sources),
+        "supported_formats": default_registry.list_supported_formats(),
+        "allowed_extensions": sorted(ALLOWED_EXTENSIONS)
+    }
+
+
+@app.get("/api/formats")
+async def get_supported_formats():
+    """Mengembalikan spesifikasi seluruh format berkas input yang didukung oleh Universal Data Ingestion Engine."""
+    formats = default_registry.list_supported_formats()
+    return {
+        "status": "success",
+        "total_format_families": len(formats),
+        "allowed_extensions": sorted(ALLOWED_EXTENSIONS),
+        "formats": formats
+    }
+
+
+@app.post("/api/parse/preview")
+async def preview_parsed_files(files: List[UploadFile] = File(...)):
+    """
+    Endpoint Diagnostik & Inspeksi Format Input:
+    Menerima unggahan berkas dalam format apa pun (CSV koma/titik-koma/tab/pipe, Excel Multi-Sheet,
+    PDF, JSON, XML CAMT.053, OFX, MT940, maupun bundel ZIP) dan menampilkan hasil deteksi skema
+    beserta pratinjau baris kanonikal yang telah dinormalisasi.
+    """
+    if not files:
+        raise HTTPException(status_code=400, detail="Tidak ada berkas yang diunggah.")
+
+    raw_uploads = [(uf.filename or "sample.csv", await _read_and_validate_upload(uf)) for uf in files]
+
+    def _inspect_all():
+        return [inspect_file_format(content, filename=fname) for fname, content in raw_uploads]
+
+    inspections = await run_in_threadpool(_inspect_all)
+    return {
+        "status": "success",
+        "files_inspected": len(inspections),
+        "results": inspections
     }
 
 

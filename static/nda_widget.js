@@ -33,6 +33,8 @@
   const sigStatus = document.getElementById("nda-sig-status");
   const sigPlaceholder = document.getElementById("nda-sig-placeholder");
   const sigBox = document.getElementById("nda-sig-box");
+  const closeBtn = document.getElementById("nda-close-btn");
+  const dismissBtn = document.getElementById("nda-dismiss-btn");
 
   // State
   let documentHash = "";
@@ -43,11 +45,47 @@
   let lastY = 0;
   let ctx = null;
 
+  // Tutup Modal
+  function closeNDAModal() {
+    overlay.classList.remove("visible");
+    setTimeout(() => {
+      overlay.classList.add("hidden");
+    }, 200);
+  }
+
+  // Buka Modal
+  function openNDAModal() {
+    loadNDADocument();
+  }
+
+  // Expose ke window untuk kontrol navigasi luar
+  window.openNDAModal = openNDAModal;
+  window.closeNDAModal = closeNDAModal;
+
+  // Pasang listener tombol tutup & dismiss
+  if (closeBtn) closeBtn.addEventListener("click", closeNDAModal);
+  if (dismissBtn) dismissBtn.addEventListener("click", closeNDAModal);
+
+  // Tutup saat klik latar belakang luar kotak modal
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) {
+      closeNDAModal();
+    }
+  });
+
+  // Tutup dengan keyboard Escape
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && overlay.classList.contains("visible")) {
+      closeNDAModal();
+    }
+  });
+
   // Cek apakah sudah pernah consent
   const savedConsentId = localStorage.getItem(LS_KEY);
   if (savedConsentId) {
     overlay.classList.add("hidden");
-    return;
+  } else {
+    loadNDADocument();
   }
 
   // ==================== FETCH DOKUMEN NDA ====================
@@ -71,8 +109,6 @@
       overlay.classList.add("hidden");
     }
   }
-
-  loadNDADocument();
 
   // ==================== INISIALISASI CANVAS TANDA TANGAN ====================
   function initCanvas() {

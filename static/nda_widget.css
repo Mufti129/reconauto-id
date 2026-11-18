@@ -77,6 +77,11 @@
   font-size: 11px;
   color: #64748b;
 }
+.nda-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .nda-header-badge {
   background: #ecfdf5;
   border: 1px solid #a7f3d0;
@@ -89,6 +94,33 @@
   align-items: center;
   gap: 5px;
   white-space: nowrap;
+}
+.nda-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+.nda-close-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+  transform: scale(1.05);
+}
+.nda-close-btn:active {
+  transform: scale(0.95);
+}
+.nda-close-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 /* --- Body Modal (Scrollable Section) --- */
@@ -355,6 +387,31 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+.nda-footer-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nda-dismiss-btn {
+  padding: 9px 16px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  white-space: nowrap;
+}
+.nda-dismiss-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+.nda-dismiss-btn:active {
+  transform: scale(0.98);
 }
 .nda-legal-note {
   font-size: 10.5px;

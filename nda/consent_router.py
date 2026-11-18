@@ -27,7 +27,7 @@ from .models import (
     NDAStatusResponse,
     NDAVerifyResponse,
 )
-from .nda_document import NDA_DOCUMENT_TEXT, NDA_DOCUMENT_HASH, NDA_DOCUMENT_VERSION
+from .nda_document import NDA_DOCUMENT_TEXT, NDA_DOCUMENT_HASH, NDA_DOCUMENT_VERSION, render_nda
 from . import storage
 
 logger = logging.getLogger("reconauto.nda")
@@ -42,8 +42,16 @@ def get_nda_document() -> NDADocumentResponse:
     document_hash saat consent agar backend dapat memverifikasi bahwa
     pengguna benar-benar membaca versi dokumen yang sama.
     """
+    rendered_text = render_nda(
+        consent_id="DRAFT-REGISTRASI",
+        tanggal_persetujuan="Saat Persetujuan Diberikan",
+        nama_lengkap="[Akan Terisi Otomatis]",
+        email="[Akan Terisi Otomatis]",
+        nama_perusahaan="[Akan Terisi Otomatis]",
+        jabatan="[Akan Terisi Otomatis]",
+    )
     return NDADocumentResponse(
-        document_text=NDA_DOCUMENT_TEXT,
+        document_text=rendered_text,
         document_version=NDA_DOCUMENT_VERSION,
         document_hash=NDA_DOCUMENT_HASH,
     )

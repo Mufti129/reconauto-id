@@ -1,12 +1,14 @@
 """
 core/parsers/bank/bca_parser.py
-Adapter untuk mutasi rekening koran Bank BCA (CSV & PDF KlikBCA / MCM).
+Adapter untuk mutasi rekening koran Bank BCA (CSV, Excel, HTML .xls, JSON, & PDF KlikBCA / MCM).
+Mendukung baik kolom tunggal (Jumlah + Tipe / embedded CR/DB) maupun kolom Debit & Kredit terpisah.
 """
 
 from typing import Tuple, List, Union, Optional, Any
 import pandas as pd
 from core.models import SourceChannel, BankStatementRow
-from core.parsers.base import BaseChannelParser, clean_number, clean_date, load_dataframe
+from core.parsers.base import BaseChannelParser, load_dataframe, extract_universal_bank_rows
+
 
 class BcaParser(BaseChannelParser):
     @property
@@ -23,59 +25,33 @@ class BcaParser(BaseChannelParser):
 
     def detect_format(self, df: Optional[pd.DataFrame] = None, filename: str = "", raw_text: str = "") -> bool:
         fn_lower = filename.lower()
-        if any(other in fn_lower for other in ["bni", "bri", "mandiri", "kopra"]):
+        if any(other in fn_lower for other in ["bni", "bri", "mandiri", "kopra", "cimb", "permata", "bsi"]):
             return False
         if fn_lower.endswith(".pdf"):
-            return "bca" in fn_lower or "rekening" in fn_lower or "statement" in fn_lower
-        if "bca" in fn_lower:
+            return "bca" in fn_lower or "rekening" in fn_lower or "statement" in fn_lower or "mutasi" in fn_lower
+        if "bca" in fn_lower or "klikbca" in fn_lower:
             return True
         if df is not None:
             col_str = " ".join([str(c).lower().strip() for c in df.columns])
-            if any(other in col_str for other in ["bni", "bri", "mandiri", "kopra"]):
+            if any(other in col_str for other in ["bni", "bri", "mandiri", "kopra", "cimb", "permata", "bsi"]):
                 return False
-            return any(k in col_str for k in ["keterangan", "bcaamount", "saldo"]) and any(k in col_str for k in ["tipe", "jumlah", "db/cr"])
+            return any(k in col_str for k in ["keterangan", "bcaamount", "saldo"]) and any(k in col_str for k in ["tipe", "jumlah", "db/cr", "mutasi"])
         return False
 
     def parse(self, source: Union[str, Any], filename: str = "") -> Tuple[SourceChannel, List[BankStatementRow]]:
-        if filename.lower().endswith(".pdf"):
+        fn_lower = filename.lower()
+        if fn_lower.endswith(".pdf"):
             from core.pdf_parser import parse_bank_pdf
             bank_rows = parse_bank_pdf(source)
+            detected_code = "BANK_BCA"
+            for code_kw, code_val in (("mandiri", "BANK_MANDIRI"), ("bni", "BANK_BNI"), ("bri", "BANK_BRI"), ("bsi", "BANK_BSI"), ("cimb", "BANK_CIMB")):
+                if code_kw in fn_lower:
+                    detected_code = code_val
+                    break
             for b in bank_rows:
-                b.bank_code = "BANK_BCA"
+                b.bank_code = detected_code
             return SourceChannel.BANK_BCA, bank_rows
 
         df = load_dataframe(source, filename)
-        rows = []
-        c_date = next((c for c in df.columns if any(k in c.lower() for k in ["tgl", "tanggal", "date"])), df.columns[0])
-        c_desc = next((c for c in df.columns if any(k in c.lower() for k in ["ket", "desc", "keterangan"])), df.columns[1])
-        c_amt = next((c for c in df.columns if any(k in c.lower() for k in ["jum", "amount", "mutasi"])), df.columns[3] if len(df.columns) > 3 else df.columns[-1])
-        c_type = next((c for c in df.columns if any(k in c.lower() for k in ["tipe", "type", "db/cr"])), None)
-        c_bal = next((c for c in df.columns if any(k in c.lower() for k in ["saldo", "balance"])), None)
-
-        for idx, r in df.iterrows():
-            desc = str(r.get(c_desc, "")).strip()
-            amt_raw = clean_number(r.get(c_amt, 0))
-            date_str = clean_date(r.get(c_date, ""))
-
-            txn_type = "CR"
-            if c_type and str(r.get(c_type, "")).strip().upper() in ["DB", "DEBIT", "D"]:
-                txn_type = "DB"
-            elif amt_raw < 0:
-                txn_type = "DB"
-                amt_raw = abs(amt_raw)
-
-            bal = clean_number(r.get(c_bal)) if c_bal else None
-            if "SALDO AWAL" in desc.upper():
-                continue
-
-            rows.append(BankStatementRow(
-                row_id=f"BCA-ROW-{idx+1}",
-                date=date_str,
-                description=desc,
-                amount=amt_raw,
-                txn_type=txn_type,
-                bank_code="BANK_BCA",
-                balance=bal,
-                raw_data=r.to_dict()
-            ))
+        rows = extract_universal_bank_rows(df, bank_code="BANK_BCA", row_prefix="BCA-ROW")
         return SourceChannel.BANK_BCA, rows

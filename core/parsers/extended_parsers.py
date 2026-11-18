@@ -13,7 +13,13 @@ Adapter parser tambahan untuk memperkaya ekosistem rekonsiliasi:
 from typing import Tuple, List, Union, Optional, Any
 import pandas as pd
 from core.models import SourceChannel, CanonicalTransaction, BankStatementRow, CodSettlementRow
-from core.parsers.base import BaseChannelParser, clean_number, clean_date, load_dataframe
+from core.parsers.base import (
+    BaseChannelParser,
+    clean_number,
+    clean_date,
+    load_dataframe,
+    extract_universal_bank_rows,
+)
 
 
 class MidtransParser(BaseChannelParser):
@@ -51,8 +57,8 @@ class MidtransParser(BaseChannelParser):
         for idx, r in df.iterrows():
             oid = str(r.get(c_order, f"MDT-{idx+1}")).strip()
             dt = clean_date(r.get(c_date, ""))
-            gross = clean_number(r.get(c_gross, 0))
-            fee = clean_number(r.get(c_fee, 0)) if c_fee else gross * 0.02
+            gross = abs(clean_number(r.get(c_gross, 0)))
+            fee = abs(clean_number(r.get(c_fee, 0))) if c_fee else gross * 0.02
             net = clean_number(r.get(c_net, 0)) if c_net else (gross - fee)
             batch = str(r.get(c_batch, f"BATCH-MDT-{dt[:7]}")) if c_batch else f"BATCH-MDT-{dt[:7]}"
 
@@ -102,8 +108,8 @@ class XenditParser(BaseChannelParser):
         for idx, r in df.iterrows():
             xid = str(r.get(c_id, f"XND-{idx+1}")).strip()
             dt = clean_date(r.get(c_date, ""))
-            gross = clean_number(r.get(c_gross, 0))
-            fee = clean_number(r.get(c_fee, 0)) if c_fee else 4500.0
+            gross = abs(clean_number(r.get(c_gross, 0)))
+            fee = abs(clean_number(r.get(c_fee, 0))) if c_fee else 4500.0
             net = gross - fee
 
             txns.append(CanonicalTransaction(
@@ -152,8 +158,8 @@ class TokopediaParser(BaseChannelParser):
         for idx, r in df.iterrows():
             inv = str(r.get(c_inv, f"TKP-{idx+1}")).strip()
             dt = clean_date(r.get(c_date, ""))
-            gross = clean_number(r.get(c_gross, 0))
-            fee = clean_number(r.get(c_fee, 0)) if c_fee else gross * 0.04
+            gross = abs(clean_number(r.get(c_gross, 0)))
+            fee = abs(clean_number(r.get(c_fee, 0))) if c_fee else gross * 0.04
             net = gross - fee
 
             txns.append(CanonicalTransaction(
@@ -193,24 +199,7 @@ class CimbParser(BaseChannelParser):
 
     def parse(self, source: Union[str, Any], filename: str = "") -> Tuple[SourceChannel, List[BankStatementRow]]:
         df = load_dataframe(source, filename)
-        rows = []
-        c_date = next((c for c in df.columns if any(k in c.lower() for k in ["date", "tanggal", "post date"])), df.columns[0])
-        c_desc = next((c for c in df.columns if any(k in c.lower() for k in ["description", "keterangan", "remark"])), df.columns[1])
-        c_amt = next((c for c in df.columns if any(k in c.lower() for k in ["amount", "nominal", "jumlah"])), df.columns[2])
-
-        for idx, r in df.iterrows():
-            amt = clean_number(r.get(c_amt, 0))
-            dt = clean_date(r.get(c_date, ""))
-            desc = str(r.get(c_desc, "")).strip()
-            ttype = "CR" if amt >= 0 else "DB"
-            rows.append(BankStatementRow(
-                row_id=f"CIMB-{idx+1}",
-                date=dt,
-                description=desc,
-                amount=abs(amt),
-                txn_type=ttype,
-                bank_code="CIMB"
-            ))
+        rows = extract_universal_bank_rows(df, bank_code="BANK_CIMB", row_prefix="CIMB")
         return self.source_channel, rows
 
 
@@ -405,23 +394,7 @@ class PermataParser(BaseChannelParser):
 
     def parse(self, source: Union[str, Any], filename: str = "") -> Tuple[SourceChannel, List[BankStatementRow]]:
         df = load_dataframe(source, filename)
-        rows = []
-        c_date = next((c for c in df.columns if any(k in c.lower() for k in ["txn date", "date", "tanggal", "post date"])), df.columns[0])
-        c_desc = next((c for c in df.columns if any(k in c.lower() for k in ["remarks", "narration", "description", "keterangan"])), df.columns[1])
-        c_amt = next((c for c in df.columns if any(k in c.lower() for k in ["credit amount", "credit", "amount", "nominal"])), df.columns[2])
-
-        for idx, r in df.iterrows():
-            amt = clean_number(r.get(c_amt, 0))
-            dt = clean_date(r.get(c_date, ""))
-            desc = str(r.get(c_desc, "")).strip()
-            rows.append(BankStatementRow(
-                row_id=f"PERMATA-{idx+1}",
-                date=dt,
-                description=desc,
-                amount=abs(amt),
-                txn_type="CR" if amt >= 0 else "DB",
-                bank_code="PERMATA"
-            ))
+        rows = extract_universal_bank_rows(df, bank_code="BANK_PERMATA", row_prefix="PERMATA")
         return self.source_channel, rows
 
 
@@ -449,23 +422,7 @@ class BsiParser(BaseChannelParser):
 
     def parse(self, source: Union[str, Any], filename: str = "") -> Tuple[SourceChannel, List[BankStatementRow]]:
         df = load_dataframe(source, filename)
-        rows = []
-        c_date = next((c for c in df.columns if any(k in c.lower() for k in ["tanggal", "date", "tgl"])), df.columns[0])
-        c_desc = next((c for c in df.columns if any(k in c.lower() for k in ["deskripsi", "keterangan", "uraian", "berita"])), df.columns[1])
-        c_amt = next((c for c in df.columns if any(k in c.lower() for k in ["kredit", "credit", "jumlah", "nominal"])), df.columns[2])
-
-        for idx, r in df.iterrows():
-            amt = clean_number(r.get(c_amt, 0))
-            dt = clean_date(r.get(c_date, ""))
-            desc = str(r.get(c_desc, "")).strip()
-            rows.append(BankStatementRow(
-                row_id=f"BSI-{idx+1}",
-                date=dt,
-                description=desc,
-                amount=abs(amt),
-                txn_type="CR" if amt >= 0 else "DB",
-                bank_code="BSI"
-            ))
+        rows = extract_universal_bank_rows(df, bank_code="BANK_BSI", row_prefix="BSI")
         return self.source_channel, rows
 
 

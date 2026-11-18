@@ -102,14 +102,15 @@ class ParserRegistry:
     def list_supported_formats(self) -> List[Dict[str, Any]]:
         """Mengembalikan daftar spesifikasi format fisik berkas yang didukung oleh sistem."""
         return [
-            {"format_id": "CSV_DELIMITED", "extensions": [".csv", ".tsv", ".txt"], "description": "Delimited Text (Auto-detect koma ',', titik koma ';', tab '\\t', pipe '|' & skip baris metadata)"},
-            {"format_id": "EXCEL_WORKBOOK", "extensions": [".xlsx", ".xls"], "description": "Microsoft Excel Workbook (Single-Sheet, Multi-Sheet Konsolidasi & HTML-based .xls)"},
-            {"format_id": "PDF_ESTATEMENT", "extensions": [".pdf"], "description": "Dokumen e-Statement Rekening Koran Bank Digital (Ekstraksi Tabel Otomatis)"},
-            {"format_id": "SWIFT_MT940", "extensions": [".sta", ".mt940", ".swift"], "description": "Standar Perbankan Internasional SWIFT MT940 (Tag :20:, :61:, :86:)"},
-            {"format_id": "ISO20022_CAMT053_OFX", "extensions": [".xml", ".camt053", ".ofx", ".qfx"], "description": "Standar ISO 20022 CAMT.053 XML (<BkToCstmrStmt>) & Open Financial Exchange (OFX/QFX)"},
-            {"format_id": "JSON_API_PAYLOAD", "extensions": [".json", ".jsonl", ".ndjson"], "description": "JSON Array, Nested Webhook/API Payload (Open Banking SNAP BI / PG), & JSON Lines"},
-            {"format_id": "ZIP_BUNDLE", "extensions": [".zip"], "description": "Arsip Bundel Multi-Berkas (Ekstraksi & klasifikasi otomatis seluruh file di dalam ZIP)"},
-            {"format_id": "UNIVERSAL_ADAPTIVE", "extensions": ["*"], "description": "Universal Smart Heuristic Mapper untuk ekspor ERP/Akuntansi kustom (SAP, Odoo, Accurate, Jurnal)"},
+            {"format_id": "CSV_DELIMITED_FWF", "extensions": [".csv", ".tsv", ".tab", ".txt", ".dat", ".prn"], "description": "Delimited & Fixed-Width Text (Auto-detect koma ',', titik koma ';', tab '\\t', pipe '|', caret '^', tilde '~', spasi ganda AS400 & skip baris metadata)"},
+            {"format_id": "EXCEL_AND_HTML_XLS", "extensions": [".xlsx", ".xls", ".ods", ".html", ".htm"], "description": "Spreadsheet Workbook (Single-Sheet, Multi-Sheet Konsolidasi, Fake .xls berbasis HTML <table> & XML Spreadsheet 2003)"},
+            {"format_id": "PDF_ESTATEMENT", "extensions": [".pdf"], "description": "Dokumen e-Statement Rekening Koran Bank Digital (BCA, Mandiri, BNI, BRI, BSI, CIMB - Ekstraksi Tabel Otomatis)"},
+            {"format_id": "SWIFT_MT940_BAI2_QIF", "extensions": [".sta", ".mt940", ".swift", ".mt9", ".bai", ".bai2", ".qif"], "description": "Standar Treasury & Perbankan Internasional SWIFT MT940 (multi-line :86: & RC/RD), BAI2 (Record 16/88), dan Quicken QIF"},
+            {"format_id": "ISO20022_CAMT053_OFX", "extensions": [".xml", ".camt053", ".camt052", ".ofx", ".qfx", ".qbo"], "description": "Standar ISO 20022 CAMT.053/052 XML (<BkToCstmrStmt>) & Open Financial Exchange (OFX/QFX/QBO)"},
+            {"format_id": "JSON_OPEN_BANKING_SNAP", "extensions": [".json", ".jsonl", ".ndjson"], "description": "JSON Array, SNAP BI Open Banking Nested Payload, Pandas Split/Records JSON, & Newline-Delimited JSON"},
+            {"format_id": "COLUMNAR_DATA_WAREHOUSE", "extensions": [".parquet", ".pq", ".feather", ".arrow"], "description": "Format Data Warehouse & Analitik Kolumnar Berkecepatan Tinggi (Apache Parquet & Apache Arrow Feather)"},
+            {"format_id": "ARCHIVE_AND_COMPRESSED", "extensions": [".zip", ".gz"], "description": "Arsip Bundel Multi-Berkas (.zip) & Berkas Terkompresi Gzip (.csv.gz, .json.gz)"},
+            {"format_id": "UNIVERSAL_ADAPTIVE", "extensions": ["*"], "description": "Universal Smart Heuristic Mapper untuk ekspor ERP/Akuntansi kustom (SAP, Odoo, Accurate, Mekari Jurnal)"},
         ]
 
     def list_channels(self) -> List[Dict[str, Any]]:

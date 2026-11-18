@@ -69,13 +69,14 @@ MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "25"))
 MAX_FILE_SIZE_BYTES = MAX_UPLOAD_MB * 1024 * 1024
 MAX_FILES_PER_REQUEST = 30
 ALLOWED_EXTENSIONS = {
-    ".csv", ".tsv", ".txt",
-    ".xlsx", ".xls",
+    ".csv", ".tsv", ".tab", ".txt", ".dat", ".prn",
+    ".xlsx", ".xls", ".ods", ".html", ".htm",
     ".pdf",
-    ".sta", ".mt940", ".swift",
-    ".xml", ".camt053", ".ofx", ".qfx",
+    ".sta", ".mt940", ".swift", ".mt9", ".qif", ".bai", ".bai2",
+    ".xml", ".camt053", ".camt052", ".ofx", ".qfx", ".qbo",
     ".json", ".jsonl", ".ndjson",
-    ".zip"
+    ".parquet", ".pq", ".feather", ".arrow",
+    ".zip", ".gz"
 }
 
 # In-memory cache terisolasi per workspace & run_id (dengan fallback otomatis ke SQLite)

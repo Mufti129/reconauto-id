@@ -68,10 +68,60 @@
   </header>
 
   <!-- MAIN CONTENT CONTAINER -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- 3-STEP GUIDED WORKFLOW STEPPER (SIMPLE & ORIENTING) -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <!-- Step 1 -->
+        <div class="flex items-center space-x-3 p-2.5 rounded-xl border transition"
+             :class="!result ? 'bg-blue-50/70 border-blue-300' : 'bg-slate-50 border-slate-200'">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center font-extrabold text-xs shrink-0"
+               :class="!result ? 'bg-blue-600 text-white shadow-sm' : 'bg-emerald-600 text-white'">
+            <span x-text="!result ? '1' : '✓'"></span>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-bold text-slate-900 truncate">Langkah 1: Input Data / Simulasi</p>
+            <p class="text-[11px] text-slate-500 truncate">Unggah 29+ format file atau klik Demo 1-Klik</p>
+          </div>
+          <button x-show="result" @click="showUploadPanel = !showUploadPanel" class="px-2 py-1 text-[10px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg shrink-0 transition">
+            <span x-text="showUploadPanel ? 'Tutup Upload' : 'Ubah File'"></span>
+          </button>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="flex items-center space-x-3 p-2.5 rounded-xl border transition"
+             :class="result ? 'bg-emerald-50/70 border-emerald-300' : 'bg-slate-50/60 border-slate-200 opacity-75'">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center font-extrabold text-xs shrink-0"
+               :class="result ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-200 text-slate-600'">
+            2
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-bold text-slate-900 truncate">Langkah 2: Jembatan Kas & Anomali</p>
+            <p class="text-[11px] text-slate-500 truncate" x-text="result ? 'Klop Tied Rp 0 • ' + (result?.summary?.total_exceptions_count || 0) + ' temuan diisolasi' : 'Validasi otomatis Proof of Cash & selisih'"></p>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="flex items-center space-x-3 p-2.5 rounded-xl border transition"
+             :class="result ? 'bg-indigo-50/70 border-indigo-300' : 'bg-slate-50/60 border-slate-200 opacity-75'">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center font-extrabold text-xs shrink-0"
+               :class="result ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-200 text-slate-600'">
+            3
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-bold text-slate-900 truncate">Langkah 3: Klaim & Pembukuan ERP</p>
+            <p class="text-[11px] text-slate-500 truncate">Cetak PDF sengketa & kirim jurnal penyesuaian</p>
+          </div>
+          <button x-show="result" @click="openSyncModal()" class="px-2 py-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg shrink-0 transition">
+            Sync ERP
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- HERO & UPLOAD SECTION -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+    <div x-show="showUploadPanel || !result" x-transition class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
       <!-- Hero Header & Value Proposition -->
       <div class="max-w-4xl mb-7">
         <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold mb-3">
@@ -338,9 +388,46 @@
           <button @click="resetData()" x-show="result" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
             Bersihkan
           </button>
+          <button @click="inspectUploadedFiles()" :disabled="isInspecting || totalFilesUploaded() === 0" class="px-4 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-2xs disabled:opacity-50 transition flex items-center space-x-1.5" title="Deteksi dan pratinjau struktur kolom berkas sebelum rekonsiliasi">
+            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <span x-text="isInspecting ? 'Memeriksa Format...' : 'Cek & Pratinjau Format'"></span>
+          </button>
           <button @click="processUploadedFiles()" :disabled="isLoading || totalFilesUploaded() === 0" class="px-6 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md shadow-blue-600/20 disabled:opacity-50 transition flex items-center space-x-2">
             <span>Proses & Rekonsiliasikan Berkas</span>
           </button>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE FORMAT INSPECTOR PREVIEW PANEL -->
+      <div x-show="formatPreviewResults && formatPreviewResults.length > 0" x-transition class="mt-5 bg-slate-50 border border-blue-200 rounded-xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+            <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Hasil Deteksi & Normalisasi Format Berkas (<span x-text="formatPreviewResults.length"></span> Berkas)</h4>
+          </div>
+          <button @click="formatPreviewResults = []" class="text-xs font-semibold text-slate-500 hover:text-slate-800">Tutup Pratinjau ×</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <template x-for="(fRes, fIdx) in formatPreviewResults" :key="fIdx">
+            <div class="bg-white border border-slate-200 rounded-lg p-3 text-xs space-y-1.5 shadow-2xs">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-900 truncate" x-text="fRes.filename"></span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-extrabold"
+                      :class="fRes.recognized ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'"
+                      x-text="fRes.recognized ? fRes.total_records + ' Baris Valid' : 'Format Tidak Dikenali'"></span>
+              </div>
+              <template x-for="(seg, sIdx) in fRes.segments || []" :key="sIdx">
+                <div class="text-[11px] text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded border border-slate-100 flex items-center justify-between">
+                  <div>
+                    <span class="font-semibold text-slate-800" x-text="seg.source_label"></span>
+                    <span class="text-slate-400 mx-1">•</span>
+                    <span class="font-mono text-[10px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded" x-text="seg.detected_channel"></span>
+                  </div>
+                  <span class="font-mono font-bold text-slate-700" x-text="seg.record_count + ' item (' + seg.record_type + ')'"></span>
+                </div>
+              </template>
+            </div>
+          </template>
         </div>
       </div>
     </div>
@@ -378,11 +465,11 @@
         </span>
       </div>
 
-      <!-- PROOF OF CASH BANNER (HARMONIZED ACCORDING TO AUDIT STANDARDS) -->
-      <div class="p-6 rounded-2xl border" :class="result?.summary?.is_balanced ? 'bg-emerald-50/80 border-emerald-300' : 'bg-rose-50/80 border-rose-300'">
+      <!-- PROOF OF CASH BANNER (HARMONIZED & VISUAL EQUATION BRIDGE) -->
+      <div class="p-6 rounded-2xl border space-y-5" :class="result?.summary?.is_balanced ? 'bg-emerald-50/80 border-emerald-300' : 'bg-rose-50/80 border-rose-300'">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div class="flex items-start space-x-4">
-            <div class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl" :class="result?.summary?.is_balanced ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl shrink-0 shadow-sm" :class="result?.summary?.is_balanced ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'">
               <span x-text="result?.summary?.is_balanced ? 'OK' : 'ALERT'"></span>
             </div>
             <div>
@@ -393,21 +480,18 @@
                 </span>
                 <span x-show="result?.summary?.total_exceptions_count > 0" class="px-2.5 py-0.5 text-xs font-extrabold rounded-full bg-amber-100 text-amber-900 border border-amber-300 flex items-center space-x-1">
                   <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                  <span x-text="(result?.summary?.total_exceptions_count || 0) + ' Selisih/Anomali Operasional Berhasil Diisolasi'"></span>
+                  <span x-text="(result?.summary?.total_exceptions_count || 0) + ' Temuan Operasional Diisolasi'"></span>
                 </span>
               </div>
               <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
-                Formula audit membuktikan seluruh aliran dana rekening koran terhitung akurat tanpa dana gelap tak bertuan (<b class="text-emerald-700">Tied Rp 0.00</b>). Di saat bersamaan, sistem secara presisi mengisolasi <b class="text-slate-800" x-text="result?.summary?.total_exceptions_count || 0"></b> selisih operasional riil (Missing Payout, Selisih Kasir Toko & Deposit Tak Dikenal) yang tersaji pada tabel di bawah untuk klaim/tindak lanjut.<br>
-                <code class="font-mono-num text-[11px] bg-white/80 px-2 py-0.5 rounded border border-slate-200 mt-1.5 inline-block text-slate-700">
-                  (Penjualan Bersih) - (In-Transit) - (Missing Payout) - (Kas Toko) - (Shortage) + (Pelunasan In-Transit Lalu) + (Unidentified Deposit) + (Bunga Bank) = Total Kredit Mutasi Bank
-                </code>
+                Jembatan matematika di bawah membuktikan seluruh uang masuk di rekening koran bank terhitung 100% tanpa dana misterius (<b class="text-emerald-700">Selisih Rp 0</b>), sekaligus memisahkan dana yang masih tertahan/perlu ditagih ke platform atau kurir.
               </p>
             </div>
           </div>
-          <div class="flex items-center space-x-2 self-end md:self-center flex-wrap gap-y-2">
+          <div class="flex items-center space-x-2 self-end md:self-center flex-wrap gap-y-2 shrink-0">
             <a href="/api/docs/pdf" target="_blank" class="px-3.5 py-2 text-xs font-bold text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg shadow-sm transition flex items-center space-x-1.5" title="Unduh Buku Panduan & Dokumentasi Resmi Sistem (PDF)">
               <svg class="w-4 h-4 text-emerald-600 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-              <span>Dokumentasi PDF (9 Halaman)</span>
+              <span>Dokumentasi PDF</span>
             </a>
             <a :href="'/api/export/excel?run_id=' + encodeURIComponent(activeRunId || '') + '&t=' + Date.now()" class="px-3.5 py-2 text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-lg shadow-sm transition flex items-center space-x-1.5">
               <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -417,6 +501,75 @@
               <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
               <span>Export Jurnal CSV</span>
             </a>
+          </div>
+        </div>
+
+        <!-- VISUAL EQUATION BRIDGE (JEMBATAN REKONSILIASI KAS) -->
+        <div class="bg-white/95 border border-emerald-200/90 rounded-xl p-4 shadow-2xs">
+          <div class="flex items-center justify-between mb-2.5">
+            <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Jembatan Matematika Proof of Cash (Cara Membaca Keseimbangan Kas):</span>
+            <span class="text-[11px] font-semibold text-emerald-700">Hak Penjualan Bersih dikurangi Dana Belum Cair ditambah Penerimaan Bank Lainnya = Total Uang Masuk Bank</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 text-xs">
+            <!-- Box 1: Net Expected Sales -->
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
+              <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase">
+                <span>1. Penjualan Bersih</span>
+                <span class="px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded">AWAL</span>
+              </div>
+              <p class="mt-1.5 text-sm font-extrabold text-slate-900 font-mono-num">
+                Rp <span x-text="formatNumber(result?.summary?.total_expected_net || 0)"></span>
+              </p>
+              <p class="text-[10px] text-slate-500 mt-0.5">Gross dikurangi komisi platform</p>
+            </div>
+
+            <!-- Box 2: Minus In-Transit & Missing Payout -->
+            <div class="p-3 rounded-lg bg-amber-50/60 border border-amber-200">
+              <div class="flex items-center justify-between text-[10px] font-bold text-amber-800 uppercase">
+                <span>2. Belum Cair ke Bank</span>
+                <span class="px-1.5 py-0.5 bg-amber-200 text-amber-900 rounded font-mono">(-) KURANG</span>
+              </div>
+              <p class="mt-1.5 text-sm font-extrabold text-amber-700 font-mono-num">
+                - Rp <span x-text="formatNumber((result?.summary?.in_transit_amount || 0) + (result?.summary?.missing_payout_amount || 0))"></span>
+              </p>
+              <p class="text-[10px] text-amber-700 mt-0.5">In-Transit kliring & dana tertahan</p>
+            </div>
+
+            <!-- Box 3: Minus Cash in Drawer & Shortage -->
+            <div class="p-3 rounded-lg bg-rose-50/60 border border-rose-200">
+              <div class="flex items-center justify-between text-[10px] font-bold text-rose-800 uppercase">
+                <span>3. Kas Toko & Selisih</span>
+                <span class="px-1.5 py-0.5 bg-rose-200 text-rose-900 rounded font-mono">(-) KURANG</span>
+              </div>
+              <p class="mt-1.5 text-sm font-extrabold text-rose-600 font-mono-num">
+                - Rp <span x-text="formatNumber((result?.summary?.unsettled_cash_amount || 0) + (result?.summary?.cash_shortage || 0))"></span>
+              </p>
+              <p class="text-[10px] text-rose-600 mt-0.5">Tunai brankas & kurang setor CDM</p>
+            </div>
+
+            <!-- Box 4: Plus Rolling, COD, Interest, Unidentified -->
+            <div class="p-3 rounded-lg bg-indigo-50/60 border border-indigo-200">
+              <div class="flex items-center justify-between text-[10px] font-bold text-indigo-800 uppercase">
+                <span>4. COD, Bunga & Titipan</span>
+                <span class="px-1.5 py-0.5 bg-indigo-200 text-indigo-900 rounded font-mono">(+) TAMBAH</span>
+              </div>
+              <p class="mt-1.5 text-sm font-extrabold text-indigo-700 font-mono-num">
+                + Rp <span x-text="formatNumber((result?.summary?.prior_in_transit_cleared_amount || 0) + (result?.summary?.external_cod_cleared || 0) + (result?.summary?.unidentified_bank_credits || 0) + (result?.summary?.bank_interest_income || 0))"></span>
+              </p>
+              <p class="text-[10px] text-indigo-600 mt-0.5">Cair COD, bunga & transfer langsung</p>
+            </div>
+
+            <!-- Box 5: Equals Bank Total Credits -->
+            <div class="p-3 rounded-lg bg-emerald-100/80 border-2 border-emerald-400">
+              <div class="flex items-center justify-between text-[10px] font-extrabold text-emerald-900 uppercase">
+                <span>5. Total Kredit Bank</span>
+                <span class="px-1.5 py-0.5 bg-emerald-600 text-white rounded font-mono">(=) KLOP</span>
+              </div>
+              <p class="mt-1.5 text-sm font-extrabold text-emerald-800 font-mono-num">
+                = Rp <span x-text="formatNumber(result?.summary?.bank_total_credits || 0)"></span>
+              </p>
+              <p class="text-[10px] font-bold text-emerald-700 mt-0.5">100% Sama dengan Mutasi Bank</p>
+            </div>
           </div>
         </div>
       </div>
@@ -490,8 +643,65 @@
         </div>
       </div>
 
+      <!-- 3-COLUMN ACTIONABLE INSIGHTS STRIP (PANDUAN TINDAKAN SEDERHANA) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Priority 1: Claims & High Risk -->
+        <div class="bg-white rounded-2xl border border-rose-200 p-4 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 uppercase">Prioritas 1 • Wajib Klaim</span>
+              <span class="text-xs font-extrabold text-rose-600 font-mono-num" x-text="countHighSeverityExceptions() + ' Temuan Kritis'"></span>
+            </div>
+            <h4 class="text-xs font-extrabold text-slate-900 mt-2">Tagih Dana Tertahan & Selisih Fee</h4>
+            <p class="text-[11px] text-slate-600 mt-1 leading-relaxed">
+              Terdapat dana payout/COD yang belum masuk rekening atau potongan komisi berlebih senilai <b class="text-rose-700 font-mono-num">Rp <span x-text="formatNumber((result?.summary?.missing_payout_amount || 0) + (result?.summary?.fee_overcharge || 0) + (result?.summary?.cod_unremitted_amount || 0))"></span></b>.
+            </p>
+          </div>
+          <button @click="activeTab = 'exceptions'; exceptionFilter = 'HIGH'; document.getElementById('audit-tabs-section')?.scrollIntoView({behavior: 'smooth'})" class="mt-3 w-full py-1.5 px-3 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition flex items-center justify-center space-x-1">
+            <span>Filter Temuan Prioritas Tinggi & Buat Klaim</span>
+            <span>&rarr;</span>
+          </button>
+        </div>
+
+        <!-- Priority 2: Normal In-Transit -->
+        <div class="bg-white rounded-2xl border border-amber-200 p-4 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 uppercase">Prioritas 2 • Pemantauan</span>
+              <span class="text-xs font-extrabold text-amber-700 font-mono-num">H+1 s/d H+3</span>
+            </div>
+            <h4 class="text-xs font-extrabold text-slate-900 mt-2">Dana Dalam Perjalanan (In-Transit Wajar)</h4>
+            <p class="text-[11px] text-slate-600 mt-1 leading-relaxed">
+              Dana senilai <b class="text-amber-700 font-mono-num">Rp <span x-text="formatNumber(result?.summary?.in_transit_amount || 0)"></span></b> sedang dalam proses kliring bank normal dan otomatis dilunasi saat mutasi periode berikutnya diunggah.
+            </p>
+          </div>
+          <button @click="activeTab = 'forward'; document.getElementById('audit-tabs-section')?.scrollIntoView({behavior: 'smooth'})" class="mt-3 w-full py-1.5 px-3 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition flex items-center justify-center space-x-1">
+            <span>Lihat Status Batch Pencairan</span>
+            <span>&rarr;</span>
+          </button>
+        </div>
+
+        <!-- Priority 3: GL Journal Booking -->
+        <div class="bg-white rounded-2xl border border-emerald-200 p-4 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 uppercase">Prioritas 3 • Pembukuan GL</span>
+              <span class="text-xs font-extrabold text-emerald-700 font-mono-num" x-text="(journalEntries?.length || 0) + ' Ayat Jurnal'"></span>
+            </div>
+            <h4 class="text-xs font-extrabold text-slate-900 mt-2">Bukukan Jurnal Penyesuaian Otomatis</h4>
+            <p class="text-[11px] text-slate-600 mt-1 leading-relaxed">
+              Biaya admin bank, pendapatan bunga, selisih kasir, dan titipan dana tak dikenal telah disusun ke jurnal PSAK seimbang (<b class="text-emerald-700">Debet = Kredit</b>).
+            </p>
+          </div>
+          <button @click="activeTab = 'journal'; document.getElementById('audit-tabs-section')?.scrollIntoView({behavior: 'smooth'})" class="mt-3 w-full py-1.5 px-3 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition flex items-center justify-center space-x-1">
+            <span>Tinjau Jurnal & Kirim ke ERP</span>
+            <span>&rarr;</span>
+          </button>
+        </div>
+      </div>
+
       <!-- INTERACTIVE BREAKDOWN TABS -->
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" x-data="{ activeTab: 'exceptions' }">
+      <div id="audit-tabs-section" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <!-- TAB HEADERS -->
         <div class="flex flex-wrap border-b border-slate-200 bg-slate-50/50 px-4 pt-2">
           <button @click="activeTab = 'exceptions'" :class="activeTab === 'exceptions' ? 'border-rose-600 text-rose-700 bg-white font-bold' : 'border-transparent text-slate-500 hover:text-slate-700 font-medium'" class="px-4 py-3 text-xs border-b-2 rounded-t-lg transition flex items-center space-x-2">
@@ -573,8 +783,9 @@
                       <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase" :class="item.severity === 'HIGH' ? 'bg-rose-100 text-rose-800' : (item.severity === 'MEDIUM' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700')" x-text="item.severity"></span>
                     </td>
                     <td class="px-4 py-3 font-semibold text-slate-900 whitespace-nowrap" x-text="item.reference_id"></td>
-                    <td class="px-4 py-3 whitespace-nowrap">
-                      <code class="font-mono text-[11px] text-slate-700 bg-slate-100 px-1 py-0.5 rounded" x-text="item.issue_type"></code>
+                    <td class="px-4 py-3">
+                      <div class="font-bold text-slate-800 text-xs" x-text="formatIssueTypeLabel(item.issue_type)"></div>
+                      <code class="font-mono text-[10px] text-slate-500 bg-slate-100 px-1 py-0.5 rounded" x-text="item.issue_type"></code>
                     </td>
                     <td class="px-4 py-3 font-mono-num font-bold text-right whitespace-nowrap" :class="item.discrepancy_amount > 0 ? 'text-rose-600' : 'text-slate-700'">
                       Rp <span x-text="formatNumber(Math.abs(item.discrepancy_amount))"></span>
@@ -859,7 +1070,7 @@
                     <td class="px-4 py-3 text-right font-mono-num text-rose-600">Rp <span x-text="formatNumber(b.fee_sum)"></span></td>
                     <td class="px-4 py-3 text-right font-mono-num font-bold text-slate-900">Rp <span x-text="formatNumber(b.net_sum)"></span></td>
                     <td class="px-4 py-3 whitespace-nowrap">
-                      <span class="px-2 py-0.5 rounded text-[10px] font-bold" :class="b.status === 'MATCHED' ? 'bg-emerald-100 text-emerald-800' : (b.status === 'TIMING_LAG' ? 'bg-amber-100 text-amber-800' : (b.status === 'MISSING_PAYOUT' ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-800'))" x-text="b.status"></span>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold" :class="b.status === 'MATCHED' ? 'bg-emerald-100 text-emerald-800' : (b.status === 'TIMING_LAG' ? 'bg-amber-100 text-amber-800' : (b.status === 'MISSING_PAYOUT' ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-800'))" x-text="formatBatchStatusLabel(b.status)"></span>
                     </td>
                     <td class="px-4 py-3 text-right font-mono-num font-bold text-emerald-600">
                       <span x-text="b.bank_amount ? 'Rp ' + formatNumber(b.bank_amount) : '-'"></span>
@@ -1849,6 +2060,10 @@
     function reconApp() {
       return {
         isLoading: false,
+        isInspecting: false,
+        showUploadPanel: true,
+        activeTab: 'exceptions',
+        formatPreviewResults: [],
         openCatalogModal: false,
         files: {
           bank: [],
@@ -2047,6 +2262,7 @@
               this.activeRunId = data.run_id;
               this.journalEntries = data.journals || [];
               this.rollingSummary = data.rolling_summary || this.rollingSummary;
+              this.showUploadPanel = false;
               await this.fetchHistory();
               this.$nextTick(() => {
                 this.renderCharts();
@@ -2058,6 +2274,34 @@
             alert('Terjadi kesalahan saat memuat demo data: ' + err);
           } finally {
             this.isLoading = false;
+          }
+        },
+
+        async inspectUploadedFiles() {
+          if (this.totalFilesUploaded() === 0) return;
+          this.isInspecting = true;
+          try {
+            const formData = new FormData();
+            for (const f of (this.files.bank || [])) formData.append('files', f);
+            for (const f of (this.files.marketplace || [])) formData.append('files', f);
+            for (const f of (this.files.pg || [])) formData.append('files', f);
+            for (const f of (this.files.pos || [])) formData.append('files', f);
+            for (const f of (this.files.cod || [])) formData.append('files', f);
+
+            const resp = await fetch('/api/parse/preview', {
+              method: 'POST',
+              body: formData
+            });
+            const data = await resp.json();
+            if (data.status === 'success') {
+              this.formatPreviewResults = data.results || [];
+            } else {
+              alert('Gagal memeriksa format berkas: ' + (data.detail || data.message || 'Error'));
+            }
+          } catch (err) {
+            alert('Terjadi kesalahan saat memeriksa format: ' + err);
+          } finally {
+            this.isInspecting = false;
           }
         },
 
@@ -2081,6 +2325,7 @@
               this.activeRunId = data.run_id;
               this.journalEntries = data.journals || [];
               this.rollingSummary = data.rolling_summary || this.rollingSummary;
+              this.showUploadPanel = false;
               await this.fetchHistory();
               this.$nextTick(() => {
                 this.renderCharts();
@@ -2097,9 +2342,47 @@
 
         resetData() {
           this.result = null;
+          this.showUploadPanel = true;
+          this.formatPreviewResults = [];
           this.files = { bank: [], marketplace: [], pg: [], pos: [], cod: [] };
           if (this.barChartInstance) this.barChartInstance.destroy();
           if (this.pieChartInstance) this.pieChartInstance.destroy();
+        },
+
+        countHighSeverityExceptions() {
+          if (!this.result || !this.result.discrepancies) return 0;
+          return this.result.discrepancies.filter(d => d.severity === 'HIGH').length;
+        },
+
+        formatIssueTypeLabel(issueType) {
+          const map = {
+            'MISSING_BANK_PAYOUT': 'Dana Payout Belum Masuk Bank',
+            'FEE_OVERCHARGE_ANOMALY': 'Potongan Komisi Berlebih (Overcharge)',
+            'DEPOSIT_IN_TRANSIT': 'Dana Dalam Perjalanan (In-Transit Wajar)',
+            'CASH_SHORTAGE_ANOMALY': 'Selisih Kurang Setoran Kasir Tunai',
+            'CASH_NOT_DEPOSITED': 'Uang Tunai Kasir Belum Disetor (Di Brankas)',
+            'UNIDENTIFIED_BANK_CREDIT': 'Transfer Masuk Tanpa Nomor Pesanan',
+            'UNRECORDED_BANK_INTEREST': 'Pendapatan Bunga Bank Belum Dibukukan',
+            'UNRECORDED_BANK_FEE': 'Biaya Administrasi Bank Belum Dibukukan',
+            'UNRECORDED_BANK_TAX': 'Pajak Bunga Giro Belum Dibukukan',
+            'COD_UNREMITTED': 'Dana COD Belum Ditransfer Kurir ke Bank',
+            'COD_SHORTAGE': 'Pencairan COD Kurir Kurang dari Tagihan Bersih',
+            'COD_VALUE_MISMATCH': 'Selisih Nilai Tagihan COD vs Invoice Order',
+            'MATH_CALCULATION_ERROR': 'Selisih Perhitungan Gross - Fee vs Net'
+          };
+          return map[issueType] || issueType;
+        },
+
+        formatBatchStatusLabel(status) {
+          const map = {
+            'MATCHED': '✓ Klop 100% Cair di Bank',
+            'TIMING_LAG': '⏳ In-Transit (Kliring H+1..3)',
+            'MISSING_PAYOUT': '⚠ Belum Masuk Bank (Klaim)',
+            'CASH_IN_DRAWER': 'Kas Tunai di Brankas Toko',
+            'PARTIALLY_MATCHED': '⚠ Cair Sebagian (Selisih Kasir)',
+            'RESOLVED_ROLLING': '✓ Lunas Bergulir (Rolling)'
+          };
+          return map[status] || status;
         },
 
         filteredExceptions() {

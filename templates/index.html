@@ -162,6 +162,36 @@
         </div>
       </div>
 
+      <!-- SMART 1-CLICK UNIFIED DROPZONE (AUTO-CLASSIFICATION) -->
+      <div class="mb-5 p-4 rounded-xl border-2 border-dashed border-blue-300 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-slate-50/70 hover:border-blue-500 transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+           @dragover.prevent
+           @drop.prevent="handleSmartUnifiedDrop($event)">
+        <div class="flex items-start sm:items-center space-x-3.5">
+          <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-extrabold text-slate-900">Unggah Cepat 1-Pintu (Tarik &amp; Lepas Semua File Sekaligus)</span>
+              <span class="px-2 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-800 rounded-full border border-blue-200">Auto-Klasifikasi 5 Kanal</span>
+            </div>
+            <p class="text-[11px] text-slate-600 mt-0.5">
+              Tidak perlu memilah manual — pilih atau drop seluruh berkas mutasi bank, marketplace, PG, POS, kurir COD, bundel <code class="font-mono font-bold text-blue-700">.zip</code>, atau Excel multi-sheet di sini. Sistem otomatis mendeteksi dan menempatkannya ke kanal yang tepat.
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2 shrink-0">
+          <label class="cursor-pointer px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition flex items-center space-x-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>Pilih Semua Berkas Sekaligus</span>
+            <input type="file" class="hidden" multiple accept=".csv,.tsv,.txt,.dat,.prn,.asc,.xlsx,.xls,.ods,.pdf,.sta,.mt940,.swift,.940,.qif,.bai,.bai2,.xml,.camt,.camt053,.ofx,.qfx,.qbo,.json,.jsonl,.ndjson,.parquet,.feather,.gz,.zip" @change="handleSmartUnifiedSelect($event)">
+          </label>
+          <button type="button" x-show="totalFilesUploaded() > 0" @click="files = { bank: [], marketplace: [], pg: [], pos: [], cod: [] }; formatPreviewResults = []" class="px-2.5 py-2 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition">
+            Reset Semua
+          </button>
+        </div>
+      </div>
+
       <!-- 5 MULTI-FILE DROPZONES -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <!-- Zone 1: Multi-Bank Statement -->
@@ -177,7 +207,7 @@
               <span x-show="files.bank.length > 0" class="px-2 py-0.5 text-[10px] bg-blue-600 text-white font-bold rounded-full" x-text="files.bank.length + ' file'"></span>
             </div>
             <p class="text-xs font-bold text-slate-800 text-left">1. Mutasi Rekening Bank</p>
-            <p class="text-[11px] text-slate-500 text-left mt-0.5" x-show="files.bank.length === 0">BCA, Mandiri, BNI, BRI, MT940 (.csv, .pdf, .sta)</p>
+            <p class="text-[11px] text-slate-500 text-left mt-0.5" x-show="files.bank.length === 0">BCA, Mandiri, BNI, BRI, MT940, BAI2, QIF (.csv, .pdf, .sta, .xlsx)</p>
 
             <!-- File List Container -->
             <div x-show="files.bank.length > 0" class="mt-2 space-y-1.5 max-h-28 overflow-y-auto text-left">
@@ -196,7 +226,7 @@
           <div class="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between gap-1">
             <label class="cursor-pointer px-2.5 py-1 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition flex items-center space-x-1">
               <span x-text="files.bank.length > 0 ? '+ Tambah' : 'Pilih File (Bisa Banyak)'"></span>
-              <input type="file" class="hidden" multiple accept=".csv,.tsv,.txt,.xlsx,.xls,.pdf,.sta,.mt940,.swift,.xml,.camt053,.ofx,.qfx,.json,.jsonl,.ndjson,.zip" @change="handleFileSelect($event, 'bank')">
+              <input type="file" class="hidden" multiple accept=".csv,.tsv,.txt,.dat,.prn,.asc,.xlsx,.xls,.ods,.pdf,.sta,.mt940,.swift,.940,.qif,.bai,.bai2,.xml,.camt,.camt053,.ofx,.qfx,.qbo,.json,.jsonl,.ndjson,.parquet,.feather,.gz,.zip" @change="handleFileSelect($event, 'bank')">
             </label>
             <button type="button" x-show="files.bank.length > 0" @click="clearCategory('bank')" class="text-[10px] text-slate-400 hover:text-rose-600 transition">Reset</button>
           </div>
@@ -234,7 +264,7 @@
           <div class="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between gap-1">
             <label class="cursor-pointer px-2.5 py-1 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 transition flex items-center space-x-1">
               <span x-text="files.marketplace.length > 0 ? '+ Tambah' : 'Pilih File (Bisa Banyak)'"></span>
-              <input type="file" class="hidden" multiple accept=".csv,.tsv,.txt,.xlsx,.xls,.json,.jsonl,.ndjson,.xml,.zip" @change="handleFileSelect($event, 'marketplace')">
+              <input type="file" class="hidden" multiple accept=".csv,.tsv,.txt,.xlsx,.xls,.ods,.json,.jsonl,.ndjson,.xml,.parquet,.feather,.gz,.zip" @change="handleFileSelect($event, 'marketplace')">
             </label>
             <button type="button" x-show="files.marketplace.length > 0" @click="clearCategory('marketplace')" class="text-[10px] text-slate-400 hover:text-rose-600 transition">Reset</button>
           </div>
@@ -272,7 +302,7 @@
           <div class="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between gap-1">
             <label class="cursor-pointer px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg border border-amber-200 transition flex items-center space-x-1">
               <span x-text="files.pg.length > 0 ? '+ Tambah' : 'Pilih File (Bisa Banyak)'"></span>
-              <input type="file" class="hidden" multiple accept=".csv,.tsv,.txt,.xlsx,.xls,.json,.jsonl,.ndjson,.xml,.zip" @change="handleFileSelect($event, 'pg')">
+              <input type="file" class="hidden" multiple accept=".csv,.tsv,.txt,.xlsx,.xls,.ods,.json,.jsonl,.ndjson,.xml,.parquet,.feather,.gz,.zip" @change="handleFileSelect($event, 'pg')">
             </label>
             <button type="button" x-show="files.pg.length > 0" @click="clearCategory('pg')" class="text-[10px] text-slate-400 hover:text-rose-600 transition">Reset</button>
           </div>
@@ -310,7 +340,7 @@
           <div class="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between gap-1">
             <label class="cursor-pointer px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition flex items-center space-x-1">
               <span x-text="files.pos.length > 0 ? '+ Tambah' : 'Pilih File (Bisa Banyak)'"></span>
-              <input type="file" class="hidden" multiple accept=".csv,.tsv,.txt,.xlsx,.xls,.json,.jsonl,.ndjson,.xml,.zip" @change="handleFileSelect($event, 'pos')">
+              <input type="file" class="hidden" multiple accept=".csv,.tsv,.txt,.xlsx,.xls,.ods,.json,.jsonl,.ndjson,.xml,.parquet,.feather,.gz,.zip" @change="handleFileSelect($event, 'pos')">
             </label>
             <button type="button" x-show="files.pos.length > 0" @click="clearCategory('pos')" class="text-[10px] text-slate-400 hover:text-rose-600 transition">Reset</button>
           </div>
@@ -329,7 +359,7 @@
               <span x-show="files.cod.length > 0" class="px-2 py-0.5 text-[10px] bg-orange-600 text-white font-bold rounded-full" x-text="files.cod.length + ' file'"></span>
             </div>
             <p class="text-xs font-bold text-slate-800 text-left">5. Ekspedisi COD Kurir</p>
-            <p class="text-[11px] text-slate-500 text-left mt-0.5" x-show="files.cod.length === 0">JNE, SiCepat, J&T COD (.csv, .xlsx, .json, .zip)</p>
+            <p class="text-[11px] text-slate-500 text-left mt-0.5" x-show="files.cod.length === 0">JNE, SiCepat, J&amp;T COD (.csv, .xlsx, .json, .zip)</p>
 
             <!-- File List Container -->
             <div x-show="files.cod.length > 0" class="mt-2 space-y-1.5 max-h-28 overflow-y-auto text-left">
@@ -348,7 +378,7 @@
           <div class="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between gap-1">
             <label class="cursor-pointer px-2.5 py-1 text-xs font-semibold text-orange-700 bg-orange-50 hover:bg-orange-100 rounded-lg border border-orange-200 transition flex items-center space-x-1">
               <span x-text="files.cod.length > 0 ? '+ Tambah' : 'Pilih File (Bisa Banyak)'"></span>
-              <input type="file" class="hidden" multiple accept=".csv,.tsv,.txt,.xlsx,.xls,.json,.jsonl,.ndjson,.xml,.zip" @change="handleFileSelect($event, 'cod')">
+              <input type="file" class="hidden" multiple accept=".csv,.tsv,.txt,.xlsx,.xls,.ods,.json,.jsonl,.ndjson,.xml,.parquet,.feather,.gz,.zip" @change="handleFileSelect($event, 'cod')">
             </label>
             <button type="button" x-show="files.cod.length > 0" @click="clearCategory('cod')" class="text-[10px] text-slate-400 hover:text-rose-600 transition">Reset</button>
           </div>
@@ -400,30 +430,57 @@
 
       <!-- INTERACTIVE FORMAT INSPECTOR PREVIEW PANEL -->
       <div x-show="formatPreviewResults && formatPreviewResults.length > 0" x-transition class="mt-5 bg-slate-50 border border-blue-200 rounded-xl p-4 space-y-3">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center space-x-2">
             <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-            <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Hasil Deteksi & Normalisasi Format Berkas (<span x-text="formatPreviewResults.length"></span> Berkas)</h4>
+            <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wide">Hasil Deteksi &amp; Pratinjau Baris Terstandarisasi (<span x-text="formatPreviewResults.length"></span> Berkas)</h4>
           </div>
           <button @click="formatPreviewResults = []" class="text-xs font-semibold text-slate-500 hover:text-slate-800">Tutup Pratinjau ×</button>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <template x-for="(fRes, fIdx) in formatPreviewResults" :key="fIdx">
-            <div class="bg-white border border-slate-200 rounded-lg p-3 text-xs space-y-1.5 shadow-2xs">
+            <div class="bg-white border border-slate-200 rounded-lg p-3 text-xs space-y-2 shadow-2xs">
               <div class="flex items-center justify-between">
                 <span class="font-bold text-slate-900 truncate" x-text="fRes.filename"></span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-extrabold"
+                <span class="px-2 py-0.5 rounded text-[10px] font-extrabold shrink-0"
                       :class="fRes.recognized ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'"
                       x-text="fRes.recognized ? fRes.total_records + ' Baris Valid' : 'Format Tidak Dikenali'"></span>
               </div>
               <template x-for="(seg, sIdx) in fRes.segments || []" :key="sIdx">
-                <div class="text-[11px] text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded border border-slate-100 flex items-center justify-between">
-                  <div>
-                    <span class="font-semibold text-slate-800" x-text="seg.source_label"></span>
-                    <span class="text-slate-400 mx-1">•</span>
-                    <span class="font-mono text-[10px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded" x-text="seg.detected_channel"></span>
+                <div class="bg-slate-50 rounded border border-slate-200/80 overflow-hidden">
+                  <div class="text-[11px] text-slate-600 px-2.5 py-1.5 flex items-center justify-between border-b border-slate-200/70">
+                    <div class="truncate">
+                      <span class="font-semibold text-slate-800" x-text="seg.source_label"></span>
+                      <span class="text-slate-400 mx-1">•</span>
+                      <span class="font-mono text-[10px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100" x-text="seg.detected_channel"></span>
+                    </div>
+                    <span class="font-mono font-bold text-slate-700 shrink-0 ml-2" x-text="seg.record_count + ' item (' + seg.record_type + ')'"></span>
                   </div>
-                  <span class="font-mono font-bold text-slate-700" x-text="seg.record_count + ' item (' + seg.record_type + ')'"></span>
+                  <!-- Sample Normalized Rows Table -->
+                  <div x-show="seg.sample_records && seg.sample_records.length > 0" class="overflow-x-auto bg-white">
+                    <table class="min-w-full divide-y divide-slate-100 text-[10px] text-left">
+                      <thead class="bg-slate-100/70 text-slate-500 font-semibold">
+                        <tr>
+                          <th class="px-2 py-1">ID / Ref</th>
+                          <th class="px-2 py-1">Tanggal</th>
+                          <th class="px-2 py-1">Keterangan / Kanal</th>
+                          <th class="px-2 py-1 text-right">Nominal (IDR)</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-100">
+                        <template x-for="(sr, rIdx) in (seg.sample_records || []).slice(0, 3)" :key="rIdx">
+                          <tr class="hover:bg-slate-50">
+                            <td class="px-2 py-1 font-mono font-bold text-slate-800 truncate max-w-[90px]" x-text="sr.row_id || sr.txn_id || sr.awb_number || '-'"></td>
+                            <td class="px-2 py-1 text-slate-500 whitespace-nowrap" x-text="sr.date || sr.settlement_date || '-'"></td>
+                            <td class="px-2 py-1 text-slate-700 truncate max-w-[140px]" x-text="sr.description || sr.courier_name || sr.channel || '-'"></td>
+                            <td class="px-2 py-1 text-right font-mono-num font-bold text-slate-900 whitespace-nowrap">
+                              Rp <span x-text="formatNumber(sr.amount ?? sr.net_amount ?? sr.net_remitted ?? 0)"></span>
+                            </td>
+                          </tr>
+                        </template>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </template>
             </div>
@@ -489,6 +546,10 @@
             </div>
           </div>
           <div class="flex items-center space-x-2 self-end md:self-center flex-wrap gap-y-2 shrink-0">
+            <button type="button" @click="showGlossary = !showGlossary" class="px-3 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-sm transition flex items-center space-x-1.5" title="Buka Panduan Singkat Istilah Rekonsiliasi">
+              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span x-text="showGlossary ? 'Tutup Panduan' : 'Panduan Istilah'"></span>
+            </button>
             <a href="/api/docs/pdf" target="_blank" class="px-3.5 py-2 text-xs font-bold text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg shadow-sm transition flex items-center space-x-1.5" title="Unduh Buku Panduan & Dokumentasi Resmi Sistem (PDF)">
               <svg class="w-4 h-4 text-emerald-600 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
               <span>Dokumentasi PDF</span>
@@ -501,6 +562,32 @@
               <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
               <span>Export Jurnal CSV</span>
             </a>
+          </div>
+        </div>
+
+        <!-- COLLAPSIBLE QUICK AUDIT GLOSSARY (KAMUS SINGKAT ISTILAH REKONSILIASI) -->
+        <div x-show="showGlossary" x-transition class="bg-white border border-blue-200 rounded-xl p-4 shadow-xs space-y-2.5 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-extrabold text-slate-900 uppercase tracking-wide text-[11px]">Panduan Singkat Istilah &amp; Cara Membaca Hasil Audit:</span>
+            <button type="button" @click="showGlossary = false" class="text-slate-400 hover:text-slate-700 font-bold">Tutup ×</button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200">
+              <p class="font-bold text-emerald-900">1. Formula Kas Klop (Tied Rp 0)</p>
+              <p class="text-[11px] text-slate-600 mt-1">Artinya setiap Rupiah perbedaan antara laporan penjualan dan mutasi bank telah berhasil ditemukan dan dijelaskan penyebabnya (0 dana misterius).</p>
+            </div>
+            <div class="p-2.5 rounded-lg bg-amber-50/70 border border-amber-200">
+              <p class="font-bold text-amber-900">2. Dana In-Transit (Wajar H+1..3)</p>
+              <p class="text-[11px] text-slate-600 mt-1">Dana penjualan akhir periode yang masih dalam perjalanan kliring bank. Akan otomatis dilunasi oleh sistem saat mutasi periode berikutnya diunggah.</p>
+            </div>
+            <div class="p-2.5 rounded-lg bg-rose-50/70 border border-rose-200">
+              <p class="font-bold text-rose-900">3. Missing Payout &amp; Overcharge</p>
+              <p class="text-[11px] text-slate-600 mt-1">Dana payout yang terlambat masuk bank atau dipotong fee melebihi kontrak. Klik tombol <b>Buat Surat Klaim</b> untuk mengunduh PDF sengketa resmi.</p>
+            </div>
+            <div class="p-2.5 rounded-lg bg-indigo-50/70 border border-indigo-200">
+              <p class="font-bold text-indigo-900">4. Audit 3-Arah COD &amp; Jurnal GL</p>
+              <p class="text-[11px] text-slate-600 mt-1">Pencocokan silang Order Penjualan ↔ Resi AWB Kurir ↔ Mutasi Bank, dilengkapi ayat jurnal penyesuaian PSAK siap kirim ke Mekari / Accurate.</p>
+            </div>
           </div>
         </div>
 
@@ -2062,6 +2149,7 @@
         isLoading: false,
         isInspecting: false,
         showUploadPanel: true,
+        showGlossary: false,
         activeTab: 'exceptions',
         formatPreviewResults: [],
         openCatalogModal: false,
@@ -2144,6 +2232,36 @@
             this.files[type] = [...existing, ...unique];
           }
           event.target.value = '';
+        },
+
+        classifyFileCategory(filename) {
+          const lower = String(filename || '').toLowerCase();
+          if (/(jne|sicepat|jnt|j&t|anteraja|ninja|idexpress|cod|awb|resi|kurir)/.test(lower)) return 'cod';
+          if (/(tiktok|shopee|tokopedia|toped|lazada|blibli|bukalapak|zalora|seller|marketplace)/.test(lower)) return 'marketplace';
+          if (/(midtrans|xendit|doku|faspay|duitku|oy_|qris|gopay|ovo|dana|shopeepay|linkaja|gateway|pg_)/.test(lower)) return 'pg';
+          if (/(pos|kasir|jubelio|moka|pawoon|majoo|olsera|qasir|cash|tunai|toko|erp)/.test(lower)) return 'pos';
+          return 'bank';
+        },
+
+        distributeSmartFiles(fileList) {
+          const incoming = Array.from(fileList || []);
+          for (const f of incoming) {
+            const cat = this.classifyFileCategory(f.name);
+            const existing = this.files[cat] || [];
+            const key = f.name + '_' + f.size;
+            if (!existing.some(e => (e.name + '_' + e.size) === key)) {
+              this.files[cat] = [...existing, f];
+            }
+          }
+        },
+
+        handleSmartUnifiedSelect(event) {
+          this.distributeSmartFiles(event.target.files);
+          event.target.value = '';
+        },
+
+        handleSmartUnifiedDrop(event) {
+          this.distributeSmartFiles(event.dataTransfer?.files);
         },
 
         handleDrop(event, type) {
